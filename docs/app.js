@@ -320,11 +320,17 @@ function applySnapshot(data) {
   maybeNotifyPickup(models);
 }
 
+function assetUrl(path) {
+  const base = window.STOCK_ASSET_BASE || "";
+  if (!base) return `${path}?t=${Date.now()}`;
+  return `${base}${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`;
+}
+
 async function runCheck() {
   setStatus("loading", "Refreshing snapshot…");
   els.checkBtn.disabled = true;
   try {
-    const response = await fetch(`stock.json?t=${Date.now()}`, { cache: "no-store" });
+    const response = await fetch(assetUrl("stock.json"), { cache: "no-store" });
     if (!response.ok) throw new Error(`Could not load stock.json (${response.status})`);
     const data = await response.json();
     applySnapshot(data);
@@ -361,7 +367,7 @@ function startWatching() {
 }
 
 async function loadCatalog() {
-  const response = await fetch("products.json");
+  const response = await fetch(assetUrl("products.json"));
   state.catalog = await response.json();
   const { storages, colors } = collectStoragesAndColors(state.catalog);
   catalogModels(state.catalog).forEach((model) => state.selectedModels.add(model.id));

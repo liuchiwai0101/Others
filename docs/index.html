@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>iPhone 18 Pro — HK Stock</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/style.css">
 </head>
 <body>
   <div class="app">
@@ -99,6 +99,16 @@
     </main>
   </div>
 
-  <script src="app.js"></script>
+  <script>
+    // Prefer same-origin assets on GitHub Pages; fall back to jsDelivr for HTML preview hosts.
+    window.STOCK_ASSET_BASE = (function () {
+      const host = location.hostname;
+      if (host.endsWith("github.io") || host === "127.0.0.1" || host === "localhost") {
+        return "";
+      }
+      return "https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/";
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/app.js"></script>
 </body>
 </html>
