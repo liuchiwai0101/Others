@@ -2,6 +2,7 @@
   "location": "Central",
   "store_number": null,
   "poll_interval_seconds": 30,
+  "models": "all",
   "part_numbers": "all",
   "filters": {
     "storage_gb": [],

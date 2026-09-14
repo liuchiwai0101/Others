@@ -3,6 +3,7 @@ const state = {
   watching: false,
   watchTimer: null,
   previousPickupAvailable: new Set(),
+  selectedModels: new Set(),
   selectedStorage: new Set(),
   selectedColors: new Set(),
 };
@@ -10,6 +11,7 @@ const state = {
 const els = {
   locationSelect: document.getElementById("locationSelect"),
   storeSelect: document.getElementById("storeSelect"),
+  modelChips: document.getElementById("modelChips"),
   storageChips: document.getElementById("storageChips"),
   colorChips: document.getElementById("colorChips"),
   checkPickup: document.getElementById("checkPickup"),
@@ -21,15 +23,15 @@ const els = {
   notifyBtn: document.getElementById("notifyBtn"),
   statusDot: document.getElementById("statusDot"),
   statusText: document.getElementById("statusText"),
+  modelsInStock: document.getElementById("modelsInStock"),
   pickupAvailable: document.getElementById("pickupAvailable"),
-  storesChecked: document.getElementById("storesChecked"),
-  deliveryAvailable: document.getElementById("deliveryAvailable"),
+  variantCount: document.getElementById("variantCount"),
   lastChecked: document.getElementById("lastChecked"),
   errorBox: document.getElementById("errorBox"),
-  pickupResults: document.getElementById("pickupResults"),
-  deliveryResults: document.getElementById("deliveryResults"),
-  pickupMeta: document.getElementById("pickupMeta"),
-  deliveryMeta: document.getElementById("deliveryMeta"),
+  overviewGrid: document.getElementById("overviewGrid"),
+  overviewMeta: document.getElementById("overviewMeta"),
+  modelsList: document.getElementById("modelsList"),
+  modelsMeta: document.getElementById("modelsMeta"),
 };
 
 function setStatus(mode, text) {
@@ -42,19 +44,18 @@ function formatStorageLabel(value) {
   return `${value}GB`;
 }
 
-function renderChips(container, values, selectedSet, labelFn = (v) => v) {
+function renderChips(container, values, selectedSet, labelFn = (v) => v, keyFn = (v) => String(v)) {
   container.innerHTML = "";
   values.forEach((value) => {
+    const key = keyFn(value);
     const button = document.createElement("button");
     button.type = "button";
     button.className = "chip";
     button.textContent = labelFn(value);
-    button.dataset.value = value;
-    if (selectedSet.has(String(value)) || selectedSet.has(value)) {
+    if (selectedSet.has(key)) {
       button.classList.add("chip--active");
     }
     button.addEventListener("click", () => {
-      const key = String(value);
       if (selectedSet.has(key)) {
         selectedSet.delete(key);
         button.classList.remove("chip--active");
@@ -67,10 +68,21 @@ function renderChips(container, values, selectedSet, labelFn = (v) => v) {
   });
 }
 
+function selectedModelsList() {
+  if (!state.catalog || state.selectedModels.size === 0) {
+    return [];
+  }
+  if (state.selectedModels.size === state.catalog.models.length) {
+    return "all";
+  }
+  return [...state.selectedModels];
+}
+
 function buildRequestBody() {
   return {
     location: els.locationSelect.value || null,
     store_number: els.storeSelect.value || null,
+    models: selectedModelsList(),
     check_pickup: els.checkPickup.checked,
     check_online_delivery: els.checkDelivery.checked,
     filters: {
@@ -93,104 +105,119 @@ function badgeLabel(status) {
   return "Unknown";
 }
 
-function groupPickupResults(pickup, variants) {
-  const grouped = new Map();
-
-  pickup.forEach((item) => {
-    if (!grouped.has(item.part_number)) {
-      grouped.set(item.part_number, {
-        part_number: item.part_number,
-        label: variants[item.part_number] || item.product_title,
-        stores: [],
-        hasAvailable: false,
-        quote: item.quote,
-      });
-    }
-    const entry = grouped.get(item.part_number);
-    entry.stores.push(item);
-    if (item.status === "available") entry.hasAvailable = true;
-  });
-
-  return [...grouped.values()].sort((a, b) => a.label.localeCompare(b.label));
-}
-
-function renderPickupResults(pickup, variants) {
-  if (!pickup.length) {
-    els.pickupResults.innerHTML = '<p class="placeholder">No pickup data returned.</p>';
+function renderOverview(models) {
+  if (!models.length) {
+    els.overviewGrid.innerHTML = '<p class="placeholder">No model data returned.</p>';
     return;
   }
 
-  const grouped = groupPickupResults(pickup, variants);
-  els.pickupResults.innerHTML = grouped
-    .map((entry) => {
-      const availableStores = entry.stores.filter((store) => store.status === "available");
-      const cardClass = entry.hasAvailable ? "variant-card variant-card--available" : "variant-card";
-      const storesHtml = entry.hasAvailable
-        ? `<ul class="store-list">${availableStores
-            .map(
-              (store) =>
-                `<li><strong>${store.store_name}</strong> · ${store.city || "HK"} · ${store.store_number}</li>`
-            )
-            .join("")}</ul>`
-        : `<p class="placeholder">${entry.quote || "Currently unavailable"} (${entry.stores.length} store(s))</p>`;
+  els.overviewGrid.innerHTML = models
+    .map((model) => {
+      const inStock = model.summary.pickup_available > 0;
+      return `
+        <article class="overview-card ${inStock ? "overview-card--in-stock" : ""}" data-model-id="${model.id}">
+          <div class="overview-card__name">${model.name}</div>
+          <div class="overview-card__stats">
+            <div>Pickup: <strong>${model.summary.pickup_available}</strong> / ${model.summary.variant_count} variants</div>
+            <div>Delivery: <strong>${model.summary.delivery_available}</strong> / ${model.summary.variant_count} buyable</div>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  els.overviewGrid.querySelectorAll(".overview-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      document.getElementById(`model-${card.dataset.modelId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
+function renderStoreTags(stores) {
+  if (!stores.length) {
+    return '<span class="placeholder">—</span>';
+  }
+  return `<div class="store-tags">${stores
+    .map((store) => `<span class="store-tag">${store.store_name}</span>`)
+    .join("")}</div>`;
+}
+
+function renderModels(models) {
+  if (!models.length) {
+    els.modelsList.innerHTML = '<p class="placeholder">No availability data.</p>';
+    return;
+  }
+
+  els.modelsList.innerHTML = models
+    .map((model) => {
+      const inStock = model.summary.pickup_available > 0;
+      const rows = model.variants
+        .map((variant) => {
+          const rowClass = variant.pickup_status === "available" ? "row--available" : "";
+          return `
+            <tr class="${rowClass}">
+              <td>${variant.label}</td>
+              <td><code>${variant.part_number}</code></td>
+              <td><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
+              <td>${renderStoreTags(variant.pickup_stores)}</td>
+              <td><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
+              <td>${variant.delivery_date}</td>
+            </tr>
+          `;
+        })
+        .join("");
 
       return `
-        <article class="${cardClass}">
-          <div class="variant-card__head">
+        <article class="model-panel ${inStock ? "model-panel--in-stock" : ""}" id="model-${model.id}">
+          <div class="model-panel__head">
             <div>
-              <div class="variant-card__title">${entry.label}</div>
-              <div class="variant-card__sku">${entry.part_number}</div>
+              <div class="model-panel__title">${model.name}</div>
+              <div class="model-panel__meta">${model.summary.variant_count} variants · ${model.summary.pickup_available} pickup · ${model.summary.delivery_available} delivery</div>
             </div>
-            <span class="${badgeClass(entry.hasAvailable ? "available" : "unavailable")}">
-              ${entry.hasAvailable ? "Available" : "Unavailable"}
-            </span>
+            ${inStock ? '<span class="badge badge--available">In stock</span>' : '<span class="badge badge--unavailable">No pickup</span>'}
           </div>
-          ${storesHtml}
+          <div class="table-wrap">
+            <table class="availability-table">
+              <thead>
+                <tr>
+                  <th>Variant</th>
+                  <th>SKU</th>
+                  <th>Pickup</th>
+                  <th>Stores</th>
+                  <th>Delivery</th>
+                  <th>Ship date</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
         </article>
       `;
     })
     .join("");
 }
 
-function renderDeliveryResults(delivery, variants) {
-  if (!delivery.length) {
-    els.deliveryResults.innerHTML =
-      '<tr><td colspan="4" class="placeholder">No delivery data returned.</td></tr>';
-    return;
-  }
-
-  els.deliveryResults.innerHTML = delivery
-    .map((item) => {
-      const label = variants[item.part_number] || item.part_number;
-      return `
-        <tr>
-          <td>${label}</td>
-          <td>${item.part_number}</td>
-          <td><span class="${badgeClass(item.status)}">${badgeLabel(item.status)}</span></td>
-          <td>${item.delivery_date}</td>
-        </tr>
-      `;
-    })
-    .join("");
-}
-
-function maybeNotifyPickup(pickup) {
+function maybeNotifyPickup(models) {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
 
-  const availableKeys = new Set(
-    pickup
-      .filter((item) => item.status === "available")
-      .map((item) => `${item.part_number}:${item.store_number}`)
-  );
+  const availableKeys = new Set();
+  models.forEach((model) => {
+    model.variants.forEach((variant) => {
+      variant.pickup_stores.forEach((store) => {
+        availableKeys.add(`${model.name}:${variant.label}:${store.store_number}`);
+      });
+    });
+  });
 
   availableKeys.forEach((key) => {
     if (!state.previousPickupAvailable.has(key)) {
-      const item = pickup.find(
-        (entry) => `${entry.part_number}:${entry.store_number}` === key
-      );
-      if (item) {
-        new Notification("iPhone 18 Pro Max in stock (HK)", {
-          body: `${item.product_title} at ${item.store_name}`,
+      const [modelName, label, storeNumber] = key.split(":");
+      const model = models.find((entry) => entry.name === modelName);
+      const variant = model?.variants.find((entry) => entry.label === label);
+      const store = variant?.pickup_stores.find((entry) => entry.store_number === storeNumber);
+      if (store) {
+        new Notification(`${modelName} in stock (HK)`, {
+          body: `${label} at ${store.store_name}`,
         });
       }
     }
@@ -200,7 +227,7 @@ function maybeNotifyPickup(pickup) {
 }
 
 async function runCheck() {
-  setStatus("loading", "Checking Apple HK…");
+  setStatus("loading", "Checking all models…");
   els.checkBtn.disabled = true;
 
   try {
@@ -215,13 +242,13 @@ async function runCheck() {
       throw new Error(data.detail || "Stock check failed");
     }
 
-    els.pickupAvailable.textContent = String(data.summary.pickup_available);
-    els.storesChecked.textContent = String(data.summary.stores_checked);
-    els.deliveryAvailable.textContent = String(data.summary.delivery_available);
+    els.modelsInStock.textContent = String(data.summary.models_with_pickup ?? 0);
+    els.pickupAvailable.textContent = String(data.summary.pickup_available ?? 0);
+    els.variantCount.textContent = String(data.summary.variant_count ?? 0);
     els.lastChecked.textContent = new Date(data.checked_at).toLocaleString();
 
-    els.pickupMeta.textContent = `${data.summary.pickup_checked} variant(s)`;
-    els.deliveryMeta.textContent = `${data.summary.delivery_checked} variant(s)`;
+    els.overviewMeta.textContent = `${data.summary.model_count} models`;
+    els.modelsMeta.textContent = `${data.summary.stores_checked} stores checked`;
 
     if (data.errors?.length) {
       els.errorBox.classList.remove("hidden");
@@ -231,9 +258,9 @@ async function runCheck() {
       els.errorBox.innerHTML = "";
     }
 
-    renderPickupResults(data.pickup || [], state.catalog.variants);
-    renderDeliveryResults(data.delivery || [], state.catalog.variants);
-    maybeNotifyPickup(data.pickup || []);
+    renderOverview(data.models || []);
+    renderModels(data.models || []);
+    maybeNotifyPickup(data.models || []);
 
     setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching" : "Ready");
   } catch (error) {
@@ -280,6 +307,16 @@ async function loadCatalog() {
       .map(([id, name]) => `<option value="${id}">${name}</option>`)
       .join("");
 
+  state.catalog.models.forEach((model) => state.selectedModels.add(model.id));
+
+  renderChips(
+    els.modelChips,
+    state.catalog.models,
+    state.selectedModels,
+    (model) => model.name,
+    (model) => model.id
+  );
+
   renderChips(els.storageChips, state.catalog.storages, state.selectedStorage, formatStorageLabel);
   renderChips(els.colorChips, state.catalog.colors, state.selectedColors);
 }
@@ -293,7 +330,6 @@ els.intervalRange.addEventListener("input", () => {
 });
 
 els.checkBtn.addEventListener("click", runCheck);
-
 els.watchBtn.addEventListener("click", () => {
   if (state.watching) stopWatching();
   else startWatching();

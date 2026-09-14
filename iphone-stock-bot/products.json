@@ -1,26 +1,5 @@
 {
-  "model": "iPhone 18 Pro Max",
   "country": "hk",
-  "locale": "en_HK",
-  "base_url": "https://www.apple.com/hk/shop",
-  "variants": {
-    "MJXN4ZA/A": "256GB Black",
-    "MJXP4ZA/A": "256GB Silver",
-    "MJXQ4ZA/A": "256GB Burgundy",
-    "MJXR4ZA/A": "256GB Glacier",
-    "MJXT4ZA/A": "512GB Black",
-    "MJXU4ZA/A": "512GB Silver",
-    "MJXV4ZA/A": "512GB Burgundy",
-    "MJXW4ZA/A": "512GB Glacier",
-    "MJXX4ZA/A": "1TB Black",
-    "MJXY4ZA/A": "1TB Silver",
-    "MJY04ZA/A": "1TB Burgundy",
-    "MJY14ZA/A": "1TB Glacier",
-    "MJY24ZA/A": "2TB Black",
-    "MJY34ZA/A": "2TB Silver",
-    "MJY44ZA/A": "2TB Burgundy",
-    "MJY54ZA/A": "2TB Glacier"
-  },
   "stores": {
     "R428": "ifc mall (Central)",
     "R499": "Canton Road (Tsim Sha Tsui)",
@@ -28,5 +7,124 @@
     "R485": "Festival Walk (Kowloon Tong)",
     "R673": "apm Hong Kong (Kwun Tong)",
     "R610": "New Town Plaza (Sha Tin)"
-  }
+  },
+  "models": {
+    "air": {
+      "name": "iPhone Air",
+      "variants": {
+        "MG2L4ZA/A": "256GB Space Black",
+        "MG2M4ZA/A": "256GB Cloud White",
+        "MG2N4ZA/A": "256GB Light Gold",
+        "MG2P4ZA/A": "256GB Sky Blue",
+        "MG2Q4ZA/A": "512GB Space Black",
+        "MG2T4ZA/A": "512GB Cloud White",
+        "MG2U4ZA/A": "512GB Light Gold",
+        "MG2V4ZA/A": "512GB Sky Blue",
+        "MG2W4ZA/A": "1TB Space Black",
+        "MG2X4ZA/A": "1TB Cloud White",
+        "MG2Y4ZA/A": "1TB Light Gold",
+        "MG304ZA/A": "1TB Sky Blue"
+      }
+    },
+    "17": {
+      "name": "iPhone 17",
+      "variants": {
+        "MG6J4ZA/A": "256GB Black",
+        "MG6K4ZA/A": "256GB White",
+        "MG6L4ZA/A": "256GB Mist Blue",
+        "MG6M4ZA/A": "256GB Lavender",
+        "MG6N4ZA/A": "256GB Sage",
+        "MG6P4ZA/A": "512GB Black",
+        "MG6Q4ZA/A": "512GB White",
+        "MG6T4ZA/A": "512GB Mist Blue",
+        "MG6U4ZA/A": "512GB Lavender",
+        "MG6V4ZA/A": "512GB Sage"
+      }
+    },
+    "17e": {
+      "name": "iPhone 17e",
+      "variants": {
+        "MHRV4ZA/A": "256GB Black",
+        "MHRW4ZA/A": "256GB White",
+        "MHRX4ZA/A": "256GB Soft Pink",
+        "MHRY4ZA/A": "512GB Black",
+        "MHU04ZA/A": "512GB White",
+        "MHU34ZA/A": "512GB Soft Pink"
+      }
+    },
+    "18-pro": {
+      "name": "iPhone 18 Pro",
+      "variants": {
+        "MJRP4ZA/A": "256GB Black",
+        "MJRQ4ZA/A": "256GB Silver",
+        "MJRR4ZA/A": "256GB Burgundy",
+        "MJRT4ZA/A": "256GB Glacier",
+        "MJRU4ZA/A": "512GB Black",
+        "MJRV4ZA/A": "512GB Silver",
+        "MJRW4ZA/A": "512GB Burgundy",
+        "MJRX4ZA/A": "512GB Glacier",
+        "MJRY4ZA/A": "1TB Black",
+        "MJT04ZA/A": "1TB Silver",
+        "MJT14ZA/A": "1TB Burgundy",
+        "MJT24ZA/A": "1TB Glacier",
+        "MJT34ZA/A": "2TB Black",
+        "MJT44ZA/A": "2TB Silver",
+        "MJT54ZA/A": "2TB Burgundy",
+        "MJT64ZA/A": "2TB Glacier"
+      }
+    },
+    "18-pro-max": {
+      "name": "iPhone 18 Pro Max",
+      "variants": {
+        "MJXN4ZA/A": "256GB Black",
+        "MJXP4ZA/A": "256GB Silver",
+        "MJXQ4ZA/A": "256GB Burgundy",
+        "MJXR4ZA/A": "256GB Glacier",
+        "MJXT4ZA/A": "512GB Black",
+        "MJXU4ZA/A": "512GB Silver",
+        "MJXV4ZA/A": "512GB Burgundy",
+        "MJXW4ZA/A": "512GB Glacier",
+        "MJXX4ZA/A": "1TB Black",
+        "MJXY4ZA/A": "1TB Silver",
+        "MJY04ZA/A": "1TB Burgundy",
+        "MJY14ZA/A": "1TB Glacier",
+        "MJY24ZA/A": "2TB Black",
+        "MJY34ZA/A": "2TB Silver",
+        "MJY44ZA/A": "2TB Burgundy",
+        "MJY54ZA/A": "2TB Glacier"
+      }
+    },
+    "duo": {
+      "name": "iPhone Duo",
+      "variants": {
+        "MK2D4ZA/A": "256GB Star White",
+        "MK2E4ZA/A": "256GB Night Sky",
+        "MK2F4ZA/A": "512GB Star White",
+        "MK2G4ZA/A": "512GB Night Sky",
+        "MK2H4ZA/A": "1TB Star White",
+        "MK2J4ZA/A": "1TB Night Sky",
+        "MK2K4ZA/A": "2TB Star White",
+        "MK2L4ZA/A": "2TB Night Sky"
+      }
+    },
+    "16": {
+      "name": "iPhone 16",
+      "variants": {
+        "MYEV3ZA/A": "128GB Black",
+        "MYEW3ZA/A": "128GB White",
+        "MYEX3ZA/A": "128GB Pink",
+        "MYEY3ZA/A": "128GB Ultramarine",
+        "MYF03ZA/A": "128GB Teal"
+      }
+    }
+  },
+  "model_order": [
+    "18-pro-max",
+    "18-pro",
+    "air",
+    "17",
+    "17e",
+    "duo",
+    "16"
+  ]
 }

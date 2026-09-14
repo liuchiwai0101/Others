@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Real-time iPhone 18 Pro Max stock checker for Apple Store Hong Kong."""
+"""Real-time iPhone stock checker for Apple Store Hong Kong."""
 
 from __future__ import annotations
 
@@ -13,18 +13,11 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-from apple_client import (
-    ApiError,
-    DeliveryResult,
-    PickupResult,
-    StockStatus,
-    check_delivery,
-    check_pickup,
-)
+from apple_client import DeliveryResult, PickupResult, StockStatus
+from service import load_catalog, run_stock_check
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_CONFIG = ROOT / "config.json"
-PRODUCTS_FILE = ROOT / "products.json"
 
 
 def load_json(path: Path) -> dict:
@@ -35,39 +28,6 @@ def load_json(path: Path) -> dict:
 def save_default_config(path: Path) -> None:
     example = ROOT / "config.example.json"
     path.write_text(example.read_text(encoding="utf-8"), encoding="utf-8")
-
-
-def resolve_part_numbers(config: dict, catalog: dict) -> list[str]:
-    configured = config.get("part_numbers", "all")
-    all_parts = list(catalog["variants"].keys())
-
-    if configured == "all":
-        selected = all_parts
-    else:
-        selected = [part for part in configured if part in catalog["variants"]]
-        unknown = [part for part in configured if part not in catalog["variants"]]
-        for part in unknown:
-            print(f"warning: unknown part number {part}", file=sys.stderr)
-
-    filters = config.get("filters") or {}
-    storage_filter = {str(value) for value in filters.get("storage_gb") or []}
-    color_filter = {value.lower() for value in filters.get("colors") or []}
-
-    if not storage_filter and not color_filter:
-        return selected
-
-    filtered: list[str] = []
-    for part in selected:
-        label = catalog["variants"][part]
-        storage, color = label.split(" ", 1)
-        storage_value = storage.replace("GB", "").replace("TB", "000")
-        if storage_filter and storage_value not in storage_filter and storage not in storage_filter:
-            continue
-        if color_filter and color.lower() not in color_filter:
-            continue
-        filtered.append(part)
-
-    return filtered
 
 
 def status_icon(status: StockStatus) -> str:
@@ -88,7 +48,16 @@ def _place_label(result: PickupResult) -> str:
     return ", ".join(parts)
 
 
+def variant_labels(catalog: dict) -> dict[str, str]:
+    labels: dict[str, str] = {}
+    for model in catalog.get("models", {}).values():
+        for part_number, label in model.get("variants", {}).items():
+            labels[part_number] = f"{model['name']} {label}"
+    return labels
+
+
 def format_pickup_lines(results: list[PickupResult], catalog: dict) -> list[str]:
+    variants = variant_labels(catalog)
     lines: list[str] = []
     grouped: dict[str, list[PickupResult]] = {}
     for result in results:
@@ -104,7 +73,7 @@ def format_pickup_lines(results: list[PickupResult], catalog: dict) -> list[str]
         lines.append("IN-STORE PICKUP (HK) — AVAILABLE")
         for part_number in sorted(available_parts):
             store_results = available_parts[part_number]
-            label = catalog["variants"].get(part_number, store_results[0].product_title)
+            label = variants.get(part_number, store_results[0].product_title)
             lines.append(f"  {status_icon(StockStatus.AVAILABLE)} {label} ({part_number})")
             for result in store_results:
                 if result.status != StockStatus.AVAILABLE:
@@ -114,7 +83,7 @@ def format_pickup_lines(results: list[PickupResult], catalog: dict) -> list[str]
 
     lines.append("IN-STORE PICKUP (HK) — none available nearby")
     for part_number, store_results in sorted(grouped.items()):
-        label = catalog["variants"].get(part_number, store_results[0].product_title)
+        label = variants.get(part_number, store_results[0].product_title)
         sample = store_results[0]
         lines.append(
             f"  {status_icon(sample.status)} {label} ({part_number}) — {sample.quote} "
@@ -123,12 +92,13 @@ def format_pickup_lines(results: list[PickupResult], catalog: dict) -> list[str]
     return lines
 
 
-def format_delivery_lines(results: list[DeliveryResult], catalog: dict) -> list[str]:
+def format_delivery_lines(results: list[dict], catalog: dict) -> list[str]:
+    variants = variant_labels(catalog)
     lines = ["ONLINE DELIVERY (HK)"]
     for result in results:
-        label = catalog["variants"].get(result.part_number, result.part_number)
+        label = variants.get(result["part_number"], result["part_number"])
         lines.append(
-            f"  {status_icon(result.status)} {label} ({result.part_number}) — ships {result.delivery_date}"
+            f"  {status_icon(StockStatus(result['status']))} {label} ({result['part_number']}) — ships {result['delivery_date']}"
         )
     return lines
 
@@ -198,15 +168,17 @@ def maybe_alert(
     for result in pickup_changes:
         if available_only and result.status != StockStatus.AVAILABLE:
             continue
-        label = catalog["variants"].get(result.part_number, result.product_title)
+        labels = variant_labels(catalog)
+        label = labels.get(result.part_number, result.product_title)
         alerts.append(
             f"Pickup {result.status.value}: {label} at {_place_label(result)}"
         )
 
+    labels = variant_labels(catalog)
     for result in delivery_changes:
         if available_only and result.status != StockStatus.AVAILABLE:
             continue
-        label = catalog["variants"].get(result.part_number, result.part_number)
+        label = labels.get(result.part_number, result.part_number)
         alerts.append(f"Delivery {result.status.value}: {label} — {result.delivery_date}")
 
     if not alerts:
@@ -221,40 +193,49 @@ def maybe_alert(
         notify_webhook(webhook_url, message)
 
     if notifications.get("desktop_alert"):
-        notify_desktop("iPhone 18 Pro Max HK Stock Alert", message)
+        notify_desktop("iPhone HK Stock Alert", message)
 
 
 def run_check(config: dict, catalog: dict, tracker: ChangeTracker | None) -> bool:
-    part_numbers = resolve_part_numbers(config, catalog)
-    if not part_numbers:
+    result = run_stock_check(config)
+    if not result.part_numbers:
         print("No part numbers selected. Update config.json filters or part_numbers.", file=sys.stderr)
         return False
 
     timestamp = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
-    print(f"\n[{timestamp}] Checking {len(part_numbers)} iPhone 18 Pro Max (HK) variant(s)...")
+    print(f"\n[{timestamp}] Checking {len(result.part_numbers)} iPhone (HK) variant(s) across {result.summary['model_count']} model(s)...")
 
-    pickup_results: list[PickupResult] = []
-    delivery_results: list[DeliveryResult] = []
-    errors: list[ApiError] = []
-
-    if config.get("check_pickup", True):
-        pickup_results, pickup_errors = check_pickup(
-            part_numbers,
-            location=config.get("location"),
-            store_number=config.get("store_number"),
+    pickup_results = [
+        PickupResult(
+            part_number=item["part_number"],
+            status=StockStatus(item["status"]),
+            quote=item["quote"],
+            product_title=item["product_title"],
+            store_name=item["store_name"],
+            store_number=item["store_number"],
+            city=item["city"],
+            state=item["state"],
         )
-        errors.extend(pickup_errors)
-        print("\n".join(format_pickup_lines(pickup_results, catalog)))
+        for item in result.pickup
+    ]
+    print("\n".join(format_pickup_lines(pickup_results, catalog)))
 
     if config.get("check_online_delivery", True):
-        delivery_results, delivery_errors = check_delivery(part_numbers)
-        errors.extend(delivery_errors)
-        print("\n".join(format_delivery_lines(delivery_results, catalog)))
+        print("\n".join(format_delivery_lines(result.delivery, catalog)))
 
-    for error in errors:
-        print(f"warning: {error.part_number}: {error.reason}", file=sys.stderr)
+    for error in result.errors:
+        print(f"warning: {error['part_number']}: {error['reason']}", file=sys.stderr)
 
     if tracker is not None:
+        delivery_results = [
+            DeliveryResult(
+                part_number=item["part_number"],
+                status=StockStatus(item["status"]),
+                delivery_date=item["delivery_date"],
+                product_title=item["product_title"],
+            )
+            for item in result.delivery
+        ]
         maybe_alert(
             config,
             tracker.pickup_changes(pickup_results),
@@ -321,7 +302,7 @@ def main() -> int:
         return 0
 
     config = load_json(args.config)
-    catalog = load_json(PRODUCTS_FILE)
+    catalog = load_catalog()
 
     if args.location:
         config["location"] = args.location
@@ -351,7 +332,7 @@ def main() -> int:
     interval = max(15, int(config.get("poll_interval_seconds", 30)))
     where = config.get("store_number") or config.get("location")
     print(
-        f"Watching iPhone 18 Pro Max (HK) stock every {interval}s "
+        f"Watching iPhone (HK) stock every {interval}s "
         f"near {where} (Ctrl+C to stop)"
     )
 

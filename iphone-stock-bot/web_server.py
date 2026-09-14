@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Web UI server for the Hong Kong iPhone 18 Pro Max stock checker."""
+"""Web UI server for the Hong Kong iPhone stock checker."""
 
 from __future__ import annotations
 
@@ -12,12 +12,12 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from service import load_catalog, run_stock_check
+from service import catalog_models, load_catalog, run_stock_check
 
 ROOT = Path(__file__).resolve().parent
 STATIC_DIR = ROOT / "static"
 
-app = FastAPI(title="iPhone 18 Pro Max HK Stock Checker", version="1.0.0")
+app = FastAPI(title="iPhone HK Stock Checker", version="2.0.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -29,6 +29,7 @@ class Filters(BaseModel):
 class CheckRequest(BaseModel):
     location: str | None = "Central"
     store_number: str | None = None
+    models: list[str] | str = "all"
     check_pickup: bool = True
     check_online_delivery: bool = True
     filters: Filters = Field(default_factory=Filters)
@@ -42,10 +43,26 @@ async def index() -> FileResponse:
 @app.get("/api/catalog")
 async def catalog() -> dict[str, Any]:
     data = load_catalog()
+    models = catalog_models(data)
+    colors = sorted(
+        {
+            label.split(" ", 1)[1]
+            for model in models
+            for label in model["variants"].values()
+            if " " in label
+        }
+    )
+    storages = sorted(
+        {
+            int(label.split(" ", 1)[0].replace("GB", "").replace("TB", "000"))
+            for model in models
+            for label in model["variants"].values()
+            if " " in label
+        }
+    )
     return {
-        "model": data["model"],
         "country": data["country"],
-        "variants": data["variants"],
+        "models": models,
         "stores": data["stores"],
         "locations": [
             "Central",
@@ -55,8 +72,8 @@ async def catalog() -> dict[str, Any]:
             "Kwun Tong",
             "Sha Tin",
         ],
-        "storages": [256, 512, 1024, 2048],
-        "colors": ["Black", "Silver", "Burgundy", "Glacier"],
+        "storages": storages,
+        "colors": colors,
     }
 
 
@@ -71,6 +88,7 @@ async def check_stock(request: CheckRequest) -> dict[str, Any]:
     config = {
         "location": request.location,
         "store_number": request.store_number,
+        "models": request.models,
         "check_pickup": request.check_pickup,
         "check_online_delivery": request.check_online_delivery,
         "part_numbers": "all",
@@ -80,6 +98,7 @@ async def check_stock(request: CheckRequest) -> dict[str, Any]:
     return {
         "checked_at": result.checked_at,
         "part_numbers": result.part_numbers,
+        "models": result.models,
         "pickup": result.pickup,
         "delivery": result.delivery,
         "errors": result.errors,
