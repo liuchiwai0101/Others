@@ -48,6 +48,11 @@ def main() -> int:
         f"pickup={payload['summary'].get('pickup_available')} "
         f"stores={payload['summary'].get('stores_checked')}"
     )
+    sys.path.insert(0, str(DOCS))
+    from build_site import build  # noqa: E402
+
+    built = build()
+    print(f"Rebuilt {built}")
     return 0
 
 

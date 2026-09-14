@@ -15,7 +15,9 @@ Alerts when availability changes (console, optional Discord/webhook, optional de
 
 **Open the site here:**
 
-https://htmlpreview.github.io/?https://github.com/liuchiwai0101/Others/blob/cursor/iphone-18-stock-bot-1629/docs/index.html
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/liuchiwai0101/Others/cursor/iphone-18-stock-bot-1629/docs/index.html
+
+The page is a single HTML file with stock baked in, so it works on iPhone. Tap **Check** for a live Apple HK query; if the preview host blocks that, pull-to-refresh to load the latest snapshot (updated about every 10 minutes).
 
 Stock data is refreshed from Apple HK about every 10 minutes by GitHub Actions (`docs/stock.json`).
 

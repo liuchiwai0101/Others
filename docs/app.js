@@ -169,13 +169,33 @@ function chunked(items, size = BATCH_SIZE) {
   return out;
 }
 
-async function fetchJson(url) {
-  const response = await fetch(url, {
-    cache: "no-store",
-    headers: { Accept: "application/json" },
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
-  return response.json();
+function readEmbeddedJson(id) {
+  const node = document.getElementById(id);
+  if (!node) return null;
+  try {
+    return JSON.parse(node.textContent);
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function fetchJson(url, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    if (error && error.name === "AbortError") throw new Error("request timed out");
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function fetchAppleJson(appleUrl) {
@@ -589,19 +609,32 @@ async function runLiveCheck() {
 }
 
 async function runCheck() {
-  setStatus("loading", "Live checking Apple HK…");
+  setStatus("loading", "Checking Apple HK…");
   els.checkBtn.disabled = true;
   try {
     try {
       const live = await runLiveCheck();
       applySnapshot(live, "live");
       setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching (live)" : "Ready");
+      return;
     } catch (liveError) {
-      setStatus("loading", "Live check failed — loading snapshot…");
-      await loadSnapshotFallback();
-      els.errorBox.classList.remove("hidden");
-      els.errorBox.textContent = `Live refresh unavailable (${liveError.message}). Showing latest saved snapshot.`;
-      setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching" : "Ready");
+      try {
+        await loadSnapshotFallback();
+        els.errorBox.classList.remove("hidden");
+        els.errorBox.textContent = `Live Apple check blocked here (${liveError.message}). Showing latest GitHub snapshot.`;
+        setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching" : "Ready");
+        return;
+      } catch (_snapshotError) {
+        const embedded = readEmbeddedJson("embedded-stock");
+        if (embedded) {
+          applySnapshot(embedded, "snapshot");
+          els.errorBox.classList.remove("hidden");
+          els.errorBox.textContent = `Live refresh is blocked on this preview page. Pull to reload for a newer snapshot. (${liveError.message})`;
+          setStatus("idle", "Snapshot");
+          return;
+        }
+        throw liveError;
+      }
     }
   } catch (error) {
     setStatus("error", "Check failed");
@@ -634,23 +667,7 @@ function startWatching() {
   state.watchTimer = setInterval(runCheck, intervalMs);
 }
 
-async function loadCatalog() {
-  const stamp = Date.now();
-  const urls = [
-    `${REPO_RAW}/products.json?t=${stamp}`,
-    `https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/products.json?t=${stamp}`,
-  ];
-  let lastError = null;
-  for (const url of urls) {
-    try {
-      state.catalog = await fetchJson(url);
-      break;
-    } catch (error) {
-      lastError = error;
-    }
-  }
-  if (!state.catalog) throw lastError || new Error("Could not load products.json");
-
+function renderCatalogFilters() {
   const { storages, colors } = collectStoragesAndColors(state.catalog);
   catalogModels(state.catalog).forEach((model) => state.selectedModels.add(model.id));
   renderChips(
@@ -662,6 +679,12 @@ async function loadCatalog() {
   );
   renderChips(els.storageChips, storages, state.selectedStorage, formatStorageLabel);
   renderChips(els.colorChips, colors, state.selectedColors);
+}
+
+function loadCatalog() {
+  state.catalog = readEmbeddedJson("embedded-catalog");
+  if (!state.catalog) throw new Error("Embedded catalog missing");
+  renderCatalogFilters();
 }
 
 els.intervalRange.addEventListener("input", () => {
@@ -689,10 +712,18 @@ els.notifyBtn.addEventListener("click", async () => {
   els.notifyBtn.textContent = permission === "granted" ? "On" : "Off";
 });
 
-loadCatalog()
-  .then(() => runCheck())
-  .catch((error) => {
-    setStatus("error", "Load failed");
-    els.errorBox.classList.remove("hidden");
-    els.errorBox.textContent = error.message;
-  });
+try {
+  setStatus("loading", "Loading snapshot…");
+  loadCatalog();
+  const embedded = readEmbeddedJson("embedded-stock");
+  if (embedded) {
+    applySnapshot(embedded, "snapshot");
+    setStatus("idle", "Ready");
+  } else {
+    setStatus("idle", "Ready — tap Check");
+  }
+} catch (error) {
+  setStatus("error", "Load failed");
+  els.errorBox.classList.remove("hidden");
+  els.errorBox.textContent = error.message;
+}

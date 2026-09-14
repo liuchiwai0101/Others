@@ -2,9 +2,472 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>iPhone 18 Pro — HK Stock</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/style.css?v=live2">
+  <style>
+:root {
+  --bg: #090b10;
+  --panel: #12151d;
+  --panel-elevated: #171b25;
+  --panel-border: #252b38;
+  --text: #f5f7fb;
+  --muted: #93a0b8;
+  --accent: #2997ff;
+  --accent-soft: rgba(41, 151, 255, 0.12);
+  --success: #30d158;
+  --success-soft: rgba(48, 209, 88, 0.12);
+  --danger: #ff453a;
+  --danger-soft: rgba(255, 69, 58, 0.12);
+  --warning: #ffd60a;
+  --radius: 16px;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  font-family: "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(41, 151, 255, 0.14), transparent 30%),
+    radial-gradient(circle at 90% 10%, rgba(48, 209, 88, 0.08), transparent 24%),
+    var(--bg);
+}
+
+.app {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header__badge {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff375f, #5e5ce6);
+  font-weight: 700;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.65rem;
+}
+
+.header__subtitle {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.header__status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.status-dot--idle { background: var(--muted); }
+.status-dot--loading { background: var(--warning); animation: pulse 1s infinite; }
+.status-dot--watching { background: var(--success); animation: pulse 2s infinite; }
+.status-dot--error { background: var(--danger); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  gap: 16px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.panel--controls {
+  padding: 14px 14px 12px;
+  height: fit-content;
+  position: sticky;
+  top: 16px;
+}
+
+.panel--controls h2 {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+}
+
+.panel--results {
+  padding: 22px;
+}
+
+.panel h2 {
+  margin: 0 0 16px;
+  font-size: 1rem;
+}
+
+.field {
+  display: block;
+  margin-bottom: 12px;
+  border: 0;
+  padding: 0;
+}
+
+.field--compact {
+  margin-bottom: 8px;
+}
+
+.field legend,
+.field > span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.field select,
+.field input[type="range"] {
+  width: 100%;
+}
+
+.field select {
+  padding: 7px 9px;
+  border-radius: 9px;
+  border: 1px solid var(--panel-border);
+  background: #0d1118;
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chip {
+  border: 1px solid var(--panel-border);
+  background: #0d1118;
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.chip--active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.field--toggles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.toggle input {
+  margin: 0;
+}
+
+.actions {
+  display: grid;
+  gap: 10px;
+}
+
+.actions--compact {
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn {
+  border: 0;
+  border-radius: 9px;
+  padding: 12px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.panel--controls .btn {
+  padding: 8px 6px;
+  font-size: 0.78rem;
+}
+
+.btn--primary { background: var(--accent); color: white; }
+.btn--secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+}
+.btn--secondary.is-active {
+  background: var(--success-soft);
+  border-color: rgba(48, 209, 88, 0.35);
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px dashed var(--panel-border);
+}
+
+.panel--controls .btn--ghost {
+  margin-top: 0;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.summary-card {
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panel-border);
+}
+
+.summary-card__label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+}
+
+.summary-card__value {
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.summary-card__value--small {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.errors {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--danger-soft);
+  border: 1px solid rgba(255, 69, 58, 0.35);
+  color: #ffd5d2;
+  font-size: 0.9rem;
+}
+
+.hidden { display: none; }
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.section-meta {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.models-list {
+  display: grid;
+  gap: 16px;
+}
+
+.model-panel {
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.model-panel--in-stock {
+  border-color: rgba(48, 209, 88, 0.28);
+}
+
+.model-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.model-panel__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.model-panel__meta {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.availability-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.availability-table th,
+.availability-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--panel-border);
+  vertical-align: top;
+}
+
+.availability-table th {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.availability-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.availability-table tr.row--available {
+  background: rgba(48, 209, 88, 0.05);
+}
+
+.badge {
+  display: inline-flex;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge--available { background: rgba(48, 209, 88, 0.16); color: #9dffb4; }
+.badge--unavailable { background: rgba(255, 69, 58, 0.14); color: #ffb4ae; }
+.badge--unknown { background: rgba(255, 214, 10, 0.14); color: #ffe58a; }
+
+.store-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.store-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.store-tag strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.store-tag--link {
+  border: 1px solid rgba(41, 151, 255, 0.35);
+  background: rgba(41, 151, 255, 0.08);
+  transition: 0.15s ease;
+}
+
+.store-tag--link:hover {
+  border-color: var(--accent);
+  background: rgba(41, 151, 255, 0.16);
+  color: #d8ecff;
+}
+
+.store-tag__action {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.variant-link {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(41, 151, 255, 0.45);
+}
+
+.variant-link:hover {
+  color: #8ec8ff;
+  border-bottom-color: var(--accent);
+}
+
+.placeholder {
+  color: var(--muted);
+}
+
+@media (max-width: 960px) {
+  .layout { grid-template-columns: 1fr; }
+  .panel--controls { position: static; }
+  .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .header { flex-direction: column; align-items: flex-start; }
+}
+
+  </style>
 </head>
 <body>
   <div class="app">
@@ -17,8 +480,8 @@
         </div>
       </div>
       <div class="header__status" id="statusBar">
-        <span class="status-dot status-dot--idle" id="statusDot"></span>
-        <span id="statusText">Ready</span>
+        <span class="status-dot status-dot--loading" id="statusDot"></span>
+        <span id="statusText">Loading…</span>
       </div>
     </header>
 
@@ -58,9 +521,9 @@
         </label>
 
         <div class="actions actions--compact">
-          <button class="btn btn--primary" id="checkBtn">Check</button>
-          <button class="btn btn--secondary" id="watchBtn">Watch</button>
-          <button class="btn btn--ghost" id="notifyBtn">Notify</button>
+          <button class="btn btn--primary" id="checkBtn" type="button">Check</button>
+          <button class="btn btn--secondary" id="watchBtn" type="button">Watch</button>
+          <button class="btn btn--ghost" id="notifyBtn" type="button">Notify</button>
         </div>
       </aside>
 
@@ -92,17 +555,750 @@
             <span class="section-meta" id="modelsMeta"></span>
           </div>
           <div class="models-list" id="modelsList">
-            <p class="placeholder">Run a check to see iPhone 18 Pro and 18 Pro Max availability.</p>
+            <p class="placeholder">Loading iPhone 18 Pro and 18 Pro Max availability…</p>
           </div>
         </section>
       </section>
     </main>
   </div>
 
-  <script>
-    // Assets are loaded from GitHub raw / jsDelivr inside app.js.
-    window.STOCK_ASSET_BASE = "";
+  <script type="application/json" id="embedded-catalog">
+{"country": "hk", "stores": {"R428": "ifc mall (Central)", "R499": "Canton Road (Tsim Sha Tsui)", "R409": "Causeway Bay", "R485": "Festival Walk (Kowloon Tong)", "R673": "apm Hong Kong (Kwun Tong)", "R610": "New Town Plaza (Sha Tin)"}, "model_order": ["18-pro-max", "18-pro"], "models": {"18-pro-max": {"name": "iPhone 18 Pro Max", "buy_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro", "variants": {"MJXN4ZA/A": "256GB Black", "MJXP4ZA/A": "256GB Silver", "MJXQ4ZA/A": "256GB Burgundy", "MJXR4ZA/A": "256GB Glacier", "MJXT4ZA/A": "512GB Black", "MJXU4ZA/A": "512GB Silver", "MJXV4ZA/A": "512GB Burgundy", "MJXW4ZA/A": "512GB Glacier", "MJXX4ZA/A": "1TB Black", "MJXY4ZA/A": "1TB Silver", "MJY04ZA/A": "1TB Burgundy", "MJY14ZA/A": "1TB Glacier", "MJY24ZA/A": "2TB Black", "MJY34ZA/A": "2TB Silver", "MJY44ZA/A": "2TB Burgundy", "MJY54ZA/A": "2TB Glacier"}}, "18-pro": {"name": "iPhone 18 Pro", "buy_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro", "variants": {"MJRP4ZA/A": "256GB Black", "MJRQ4ZA/A": "256GB Silver", "MJRR4ZA/A": "256GB Burgundy", "MJRT4ZA/A": "256GB Glacier", "MJRU4ZA/A": "512GB Black", "MJRV4ZA/A": "512GB Silver", "MJRW4ZA/A": "512GB Burgundy", "MJRX4ZA/A": "512GB Glacier", "MJRY4ZA/A": "1TB Black", "MJT04ZA/A": "1TB Silver", "MJT14ZA/A": "1TB Burgundy", "MJT24ZA/A": "1TB Glacier", "MJT34ZA/A": "2TB Black", "MJT44ZA/A": "2TB Silver", "MJT54ZA/A": "2TB Burgundy", "MJT64ZA/A": "2TB Glacier"}}}}
   </script>
-  <script src="https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/app.js?v=live2"></script>
+  <script type="application/json" id="embedded-stock">
+{"checked_at": "2026-09-14T11:57:53.693730+00:00", "part_numbers": ["MJXN4ZA/A", "MJXP4ZA/A", "MJXQ4ZA/A", "MJXR4ZA/A", "MJXT4ZA/A", "MJXU4ZA/A", "MJXV4ZA/A", "MJXW4ZA/A", "MJXX4ZA/A", "MJXY4ZA/A", "MJY04ZA/A", "MJY14ZA/A", "MJY24ZA/A", "MJY34ZA/A", "MJY44ZA/A", "MJY54ZA/A", "MJRP4ZA/A", "MJRQ4ZA/A", "MJRR4ZA/A", "MJRT4ZA/A", "MJRU4ZA/A", "MJRV4ZA/A", "MJRW4ZA/A", "MJRX4ZA/A", "MJRY4ZA/A", "MJT04ZA/A", "MJT14ZA/A", "MJT24ZA/A", "MJT34ZA/A", "MJT44ZA/A", "MJT54ZA/A", "MJT64ZA/A"], "models": [{"id": "18-pro-max", "name": "iPhone 18 Pro Max", "summary": {"variant_count": 16, "pickup_available": 0, "delivery_available": 16}, "variants": [{"part_number": "MJXN4ZA/A", "label": "256GB Black", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-256gb-black?product=MJXN4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJXP4ZA/A", "label": "256GB Silver", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-256gb-silver?product=MJXP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJXQ4ZA/A", "label": "256GB Burgundy", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-256gb-burgundy?product=MJXQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJXR4ZA/A", "label": "256GB Glacier", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-256gb-glacier?product=MJXR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJXT4ZA/A", "label": "512GB Black", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-512gb-black?product=MJXT4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJXU4ZA/A", "label": "512GB Silver", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-512gb-silver?product=MJXU4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJXV4ZA/A", "label": "512GB Burgundy", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-512gb-burgundy?product=MJXV4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJXW4ZA/A", "label": "512GB Glacier", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-512gb-glacier?product=MJXW4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJXX4ZA/A", "label": "1TB Black", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-1tb-black?product=MJXX4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJXY4ZA/A", "label": "1TB Silver", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-1tb-silver?product=MJXY4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJY04ZA/A", "label": "1TB Burgundy", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-1tb-burgundy?product=MJY04ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJY14ZA/A", "label": "1TB Glacier", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-1tb-glacier?product=MJY14ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJY24ZA/A", "label": "2TB Black", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-2tb-black?product=MJY24ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJY34ZA/A", "label": "2TB Silver", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-2tb-silver?product=MJY34ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJY44ZA/A", "label": "2TB Burgundy", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-2tb-burgundy?product=MJY44ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}, {"part_number": "MJY54ZA/A", "label": "2TB Glacier", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-2tb-glacier?product=MJY54ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "09/10/2026 – 16/10/2026"}]}, {"id": "18-pro", "name": "iPhone 18 Pro", "summary": {"variant_count": 16, "pickup_available": 6, "delivery_available": 16}, "variants": [{"part_number": "MJRP4ZA/A", "label": "256GB Black", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "available", "pickup_quote": "Available Fri 18 Sept", "pickup_when": "Fri 18 Sept", "pickup_stores": [{"store_name": "ifc mall", "store_number": "R428", "city": "Central", "quote": "Available Fri 18 Sept", "available_when": "Fri 18 Sept", "store_url": "https://www.apple.com/hk/retail/ifcmall/", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}, {"store_name": "Causeway Bay", "store_number": "R409", "city": "Causeway Bay", "quote": "Available Sat 19 Sept", "available_when": "Sat 19 Sept", "store_url": "https://www.apple.com/hk/retail/causewaybay", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}, {"store_name": "Festival Walk", "store_number": "R485", "city": "Kowloon Tong", "quote": "Available Sat 19 Sept", "available_when": "Sat 19 Sept", "store_url": "https://www.apple.com/hk/retail/festivalwalk", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}, {"store_name": "New Town Plaza", "store_number": "R610", "city": "Sha Tin", "quote": "Available Sun 20 Sept", "available_when": "Sun 20 Sept", "store_url": "https://www.apple.com/hk/retail/newtownplaza", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJRQ4ZA/A", "label": "256GB Silver", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-silver?product=MJRQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "available", "pickup_quote": "Available Fri 18 Sept", "pickup_when": "Fri 18 Sept", "pickup_stores": [{"store_name": "ifc mall", "store_number": "R428", "city": "Central", "quote": "Available Fri 18 Sept", "available_when": "Fri 18 Sept", "store_url": "https://www.apple.com/hk/retail/ifcmall/", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-silver?product=MJRQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}, {"store_name": "Causeway Bay", "store_number": "R409", "city": "Causeway Bay", "quote": "Available Sat 19 Sept", "available_when": "Sat 19 Sept", "store_url": "https://www.apple.com/hk/retail/causewaybay", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-silver?product=MJRQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}, {"store_name": "Festival Walk", "store_number": "R485", "city": "Kowloon Tong", "quote": "Available Sat 19 Sept", "available_when": "Sat 19 Sept", "store_url": "https://www.apple.com/hk/retail/festivalwalk", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-silver?product=MJRQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJRR4ZA/A", "label": "256GB Burgundy", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "available", "pickup_quote": "Available Fri 18 Sept", "pickup_when": "Fri 18 Sept", "pickup_stores": [{"store_name": "ifc mall", "store_number": "R428", "city": "Central", "quote": "Available Fri 18 Sept", "available_when": "Fri 18 Sept", "store_url": "https://www.apple.com/hk/retail/ifcmall/", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}, {"store_name": "Causeway Bay", "store_number": "R409", "city": "Causeway Bay", "quote": "Available Sat 19 Sept", "available_when": "Sat 19 Sept", "store_url": "https://www.apple.com/hk/retail/causewaybay", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}, {"store_name": "Festival Walk", "store_number": "R485", "city": "Kowloon Tong", "quote": "Available Sat 19 Sept", "available_when": "Sat 19 Sept", "store_url": "https://www.apple.com/hk/retail/festivalwalk", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}, {"store_name": "apm Hong Kong", "store_number": "R673", "city": "Kwun Tong", "quote": "Available Sat 19 Sept", "available_when": "Sat 19 Sept", "store_url": "https://www.apple.com/hk/retail/apmhongkong", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJRT4ZA/A", "label": "256GB Glacier", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-glacier?product=MJRT4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJRU4ZA/A", "label": "512GB Black", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-black?product=MJRU4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJRV4ZA/A", "label": "512GB Silver", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-silver?product=MJRV4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "available", "pickup_quote": "Currently unavailable", "pickup_when": "Sat 19 Sept", "pickup_stores": [{"store_name": "Causeway Bay", "store_number": "R409", "city": "Causeway Bay", "quote": "Available Sat 19 Sept", "available_when": "Sat 19 Sept", "store_url": "https://www.apple.com/hk/retail/causewaybay", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-silver?product=MJRV4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJRW4ZA/A", "label": "512GB Burgundy", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-burgundy?product=MJRW4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "available", "pickup_quote": "Currently unavailable", "pickup_when": "Sat 19 Sept", "pickup_stores": [{"store_name": "Canton Road", "store_number": "R499", "city": "Tsim Sha Tsui", "quote": "Available Sat 19 Sept", "available_when": "Sat 19 Sept", "store_url": "https://www.apple.com/hk/retail/cantonroad", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-burgundy?product=MJRW4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJRX4ZA/A", "label": "512GB Glacier", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-glacier?product=MJRX4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJRY4ZA/A", "label": "1TB Black", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-1tb-black?product=MJRY4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJT04ZA/A", "label": "1TB Silver", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-1tb-silver?product=MJT04ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJT14ZA/A", "label": "1TB Burgundy", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-1tb-burgundy?product=MJT14ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJT24ZA/A", "label": "1TB Glacier", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-1tb-glacier?product=MJT24ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJT34ZA/A", "label": "2TB Black", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-black?product=MJT34ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "available", "pickup_quote": "Currently unavailable", "pickup_when": "Sun 20 Sept", "pickup_stores": [{"store_name": "New Town Plaza", "store_number": "R610", "city": "Sha Tin", "quote": "Available Sun 20 Sept", "available_when": "Sun 20 Sept", "store_url": "https://www.apple.com/hk/retail/newtownplaza", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-black?product=MJT34ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"}], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJT44ZA/A", "label": "2TB Silver", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-silver?product=MJT44ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJT54ZA/A", "label": "2TB Burgundy", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-burgundy?product=MJT54ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}, {"part_number": "MJT64ZA/A", "label": "2TB Glacier", "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-glacier?product=MJT64ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none", "pickup_status": "unavailable", "pickup_quote": "Currently unavailable", "pickup_when": "Currently unavailable", "pickup_stores": [], "delivery_status": "available", "delivery_date": "29/09/2026 – 07/10/2026"}]}], "errors": [], "summary": {"model_count": 2, "variant_count": 32, "pickup_available": 14, "pickup_checked": 32, "delivery_available": 32, "delivery_checked": 32, "stores_checked": 6, "models_with_pickup": 1}, "source": "github-actions"}
+  </script>
+  <script>
+const BATCH_SIZE = 4;
+const LOCATION = "Central";
+const BUY_BASE = "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro";
+const APPLE_BASE = "https://www.apple.com/hk/shop";
+const REPO_RAW =
+  "https://raw.githubusercontent.com/liuchiwai0101/Others/cursor/iphone-18-stock-bot-1629/docs";
+const SCREEN_SIZE = {
+  "18-pro": "6.3-inch-display",
+  "18-pro-max": "6.9-inch-display",
+};
+
+const state = {
+  catalog: null,
+  snapshot: null,
+  watching: false,
+  watchTimer: null,
+  previousPickupAvailable: new Set(),
+  seedNotificationBaseline: true,
+  selectedModels: new Set(),
+  selectedStorage: new Set(),
+  selectedColors: new Set(),
+};
+
+const els = {
+  modelChips: document.getElementById("modelChips"),
+  storageChips: document.getElementById("storageChips"),
+  colorChips: document.getElementById("colorChips"),
+  checkPickup: document.getElementById("checkPickup"),
+  checkDelivery: document.getElementById("checkDelivery"),
+  intervalRange: document.getElementById("intervalRange"),
+  intervalLabel: document.getElementById("intervalLabel"),
+  checkBtn: document.getElementById("checkBtn"),
+  watchBtn: document.getElementById("watchBtn"),
+  notifyBtn: document.getElementById("notifyBtn"),
+  statusDot: document.getElementById("statusDot"),
+  statusText: document.getElementById("statusText"),
+  modelsInStock: document.getElementById("modelsInStock"),
+  pickupAvailable: document.getElementById("pickupAvailable"),
+  variantCount: document.getElementById("variantCount"),
+  lastChecked: document.getElementById("lastChecked"),
+  errorBox: document.getElementById("errorBox"),
+  modelsList: document.getElementById("modelsList"),
+  modelsMeta: document.getElementById("modelsMeta"),
+};
+
+function setStatus(mode, text) {
+  els.statusDot.className = `status-dot status-dot--${mode}`;
+  els.statusText.textContent = text;
+}
+
+function formatStorageLabel(value) {
+  if (value >= 1024) return `${value / 1024}TB`;
+  return `${value}GB`;
+}
+
+function parseVariantStorageGb(label) {
+  const storage = label.split(" ", 1)[0].toUpperCase();
+  if (storage.endsWith("TB")) return Math.round(parseFloat(storage) * 1024);
+  if (storage.endsWith("GB")) return parseInt(storage, 10);
+  return Number(storage);
+}
+
+function parseVariantColor(label) {
+  return label.split(" ").slice(1).join(" ");
+}
+
+function catalogModels(catalog) {
+  const order = catalog.model_order || Object.keys(catalog.models || {});
+  return order
+    .filter((id) => catalog.models[id])
+    .map((id) => ({
+      id,
+      name: catalog.models[id].name,
+      variants: catalog.models[id].variants,
+    }));
+}
+
+function collectStoragesAndColors(catalog) {
+  const storages = new Set();
+  const colors = new Set();
+  catalogModels(catalog).forEach((model) => {
+    Object.values(model.variants).forEach((label) => {
+      storages.add(parseVariantStorageGb(label));
+      colors.add(parseVariantColor(label));
+    });
+  });
+  return {
+    storages: [...storages].sort((a, b) => a - b),
+    colors: [...colors].sort(),
+  };
+}
+
+function matchesCurrentFilters(model, variant) {
+  if (state.selectedModels.size > 0 && !state.selectedModels.has(model.id)) return false;
+  if (state.selectedStorage.size > 0) {
+    if (!state.selectedStorage.has(String(parseVariantStorageGb(variant.label)))) return false;
+  }
+  if (state.selectedColors.size > 0) {
+    if (!state.selectedColors.has(parseVariantColor(variant.label))) return false;
+  }
+  return true;
+}
+
+function onFiltersChanged() {
+  state.previousPickupAvailable = new Set();
+  state.seedNotificationBaseline = true;
+  if (state.snapshot) applySnapshot(state.snapshot);
+}
+
+function renderChips(container, values, selectedSet, labelFn = (v) => v, keyFn = (v) => String(v)) {
+  container.innerHTML = "";
+  values.forEach((value) => {
+    const key = keyFn(value);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "chip";
+    button.textContent = labelFn(value);
+    if (selectedSet.has(key)) button.classList.add("chip--active");
+    button.addEventListener("click", () => {
+      if (selectedSet.has(key)) {
+        selectedSet.delete(key);
+        button.classList.remove("chip--active");
+      } else {
+        selectedSet.add(key);
+        button.classList.add("chip--active");
+      }
+      onFiltersChanged();
+    });
+    container.appendChild(button);
+  });
+}
+
+function orderUrlFor(partNumber, modelId, label) {
+  const params = new URLSearchParams({
+    product: partNumber,
+    purchaseOption: "fullPrice",
+    tradeInSelection: "noTradeIn",
+    acpart: "none",
+  });
+  const screen = SCREEN_SIZE[modelId];
+  if (screen && label && label.includes(" ")) {
+    const [storage, ...colorParts] = label.split(" ");
+    const slug = `${screen}-${storage.toLowerCase()}-${colorParts.join(" ").toLowerCase()}`;
+    return `${BUY_BASE}/${slug}?${params}`;
+  }
+  return `https://www.apple.com/hk/shop/product/${encodeURIComponent(partNumber)}?${params}`;
+}
+
+function selectedParts() {
+  const parts = [];
+  catalogModels(state.catalog).forEach((model) => {
+    if (state.selectedModels.size > 0 && !state.selectedModels.has(model.id)) return;
+    Object.entries(model.variants).forEach(([part, label]) => {
+      if (state.selectedStorage.size > 0) {
+        if (!state.selectedStorage.has(String(parseVariantStorageGb(label)))) return;
+      }
+      if (state.selectedColors.size > 0) {
+        if (!state.selectedColors.has(parseVariantColor(label))) return;
+      }
+      parts.push({ part, label, modelId: model.id, modelName: model.name });
+    });
+  });
+  return parts;
+}
+
+function chunked(items, size = BATCH_SIZE) {
+  const out = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+function readEmbeddedJson(id) {
+  const node = document.getElementById(id);
+  if (!node) return null;
+  try {
+    return JSON.parse(node.textContent);
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function fetchJson(url, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    if (error && error.name === "AbortError") throw new Error("request timed out");
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchAppleJson(appleUrl) {
+  const proxied = `https://r.jina.ai/${appleUrl}`;
+  const payload = await fetchJson(proxied);
+  const content = payload?.data?.content;
+  if (typeof content === "string" && content.trim()) {
+    return JSON.parse(content);
+  }
+  if (payload?.body) return payload;
+  throw new Error("Unexpected proxy response");
+}
+
+function pickupStatus(raw) {
+  if (raw === "available") return "available";
+  if (raw === "unavailable") return "unavailable";
+  if (raw === "ineligible") return "ineligible";
+  return "unknown";
+}
+
+function availableWhen(availability, regular) {
+  const quote = (availability.pickupSearchQuote || "").trim();
+  const storeQuote = (regular.storePickupQuote || "").trim();
+  if (quote.toLowerCase().startsWith("available ")) return quote.slice("Available ".length).trim();
+  if (quote && !["currently unavailable", "unavailable"].includes(quote.toLowerCase())) return quote;
+  if (storeQuote.includes(" at Apple ")) return storeQuote.split(" at Apple ", 1)[0].trim();
+  if (storeQuote.toLowerCase().startsWith("today")) return "Today";
+  return quote || storeQuote || "";
+}
+
+function buildPickupUrl(parts) {
+  const params = new URLSearchParams({ pl: "true", location: LOCATION });
+  parts.forEach((part, index) => params.append(`parts.${index}`, part));
+  return `${APPLE_BASE}/retail/pickup-message?${params}`;
+}
+
+function buildDeliveryUrl(parts) {
+  const params = new URLSearchParams({ mt: "regular" });
+  parts.forEach((part, index) => params.append(`parts.${index}`, part));
+  return `${APPLE_BASE}/delivery-message?${params}`;
+}
+
+async function checkPickup(parts) {
+  if (!parts.length) return { results: [], errors: [] };
+  const payload = await fetchAppleJson(buildPickupUrl(parts));
+  const body = payload.body || {};
+  if (body.errorMessage) return { results: [], errors: [{ part_number: "*", reason: body.errorMessage }] };
+  const stores = body.stores || [];
+  if (!stores.length) {
+    return {
+      results: [],
+      errors: [{ part_number: "*", reason: body.notAvailableNearby || "no stores returned" }],
+    };
+  }
+  const results = [];
+  stores.forEach((store) => {
+    const storeUrl = (store.reservationUrl || store.makeReservationUrl || "").replace("http://", "https://");
+    Object.entries(store.partsAvailability || {}).forEach(([partNumber, availability]) => {
+      const regular = (availability.messageTypes || {}).regular || {};
+      results.push({
+        part_number: partNumber,
+        status: pickupStatus(availability.pickupDisplay),
+        quote: availability.pickupSearchQuote || regular.storePickupQuote || "",
+        available_when: availableWhen(availability, regular),
+        store_name: store.storeName || "Unknown Store",
+        store_number: store.storeNumber || "",
+        city: store.city || "",
+        store_url: storeUrl,
+      });
+    });
+  });
+  return { results, errors: [] };
+}
+
+async function checkDelivery(parts) {
+  if (!parts.length) return { results: [], errors: [] };
+  const payload = await fetchAppleJson(buildDeliveryUrl(parts));
+  const deliveryMessage = (((payload.body || {}).content || {}).deliveryMessage) || {};
+  const results = parts.map((partNumber) => {
+    const partData = deliveryMessage[partNumber];
+    if (!partData) {
+      return { part_number: partNumber, status: "unknown", delivery_date: "unknown" };
+    }
+    const regular = partData.regular || {};
+    const options = regular.deliveryOptions || [];
+    const dateText = options[0]?.date || regular.orderByDeliveryBy || "unknown";
+    const buyability = regular.buyability || {};
+    const isBuyable = buyability.isBuyable;
+    const inventory = buyability.inventory;
+    let status = "unknown";
+    if (isBuyable === true && (inventory == null || inventory > 0)) status = "available";
+    else if (isBuyable === false || inventory === 0) status = "unavailable";
+    else status = String(dateText).toLowerCase().includes("unavailable") ? "unavailable" : "available";
+    return { part_number: partNumber, status, delivery_date: dateText };
+  });
+  return { results, errors: [] };
+}
+
+function groupByModel(selected, pickupResults, deliveryResults) {
+  const pickupByPart = {};
+  pickupResults.forEach((item) => {
+    (pickupByPart[item.part_number] ||= []).push(item);
+  });
+  const deliveryByPart = Object.fromEntries(deliveryResults.map((item) => [item.part_number, item]));
+
+  const grouped = {};
+  catalogModels(state.catalog).forEach((model) => {
+    grouped[model.id] = {
+      id: model.id,
+      name: model.name,
+      summary: { variant_count: 0, pickup_available: 0, delivery_available: 0 },
+      variants: [],
+    };
+  });
+
+  selected.forEach(({ part, label, modelId }) => {
+    const pickupEntries = pickupByPart[part] || [];
+    const availableStores = pickupEntries
+      .filter((entry) => entry.status === "available")
+      .map((entry) => ({
+        store_name: entry.store_name,
+        store_number: entry.store_number,
+        city: entry.city,
+        quote: entry.quote,
+        available_when: entry.available_when,
+        store_url: entry.store_url,
+        order_url: orderUrlFor(part, modelId, label),
+      }));
+    const pickupStatusValue = availableStores.length
+      ? "available"
+      : pickupEntries[0]?.status || "unknown";
+    const delivery = deliveryByPart[part];
+    const variant = {
+      part_number: part,
+      label,
+      order_url: orderUrlFor(part, modelId, label),
+      pickup_status: pickupStatusValue,
+      pickup_quote: pickupEntries[0]?.quote || "",
+      pickup_when:
+        pickupEntries.find((e) => e.status === "available" && e.available_when)?.available_when ||
+        pickupEntries[0]?.available_when ||
+        "",
+      pickup_stores: availableStores,
+      delivery_status: delivery?.status || "unknown",
+      delivery_date: delivery?.delivery_date || "unknown",
+    };
+    const modelEntry = grouped[modelId];
+    modelEntry.variants.push(variant);
+    modelEntry.summary.variant_count += 1;
+    if (pickupStatusValue === "available") modelEntry.summary.pickup_available += 1;
+    if (variant.delivery_status === "available") modelEntry.summary.delivery_available += 1;
+  });
+
+  const order = state.catalog.model_order || Object.keys(grouped);
+  return order.filter((id) => grouped[id]?.variants.length).map((id) => grouped[id]);
+}
+
+function filterModels(models) {
+  return models
+    .map((model) => {
+      if (state.selectedModels.size > 0 && !state.selectedModels.has(model.id)) return null;
+      const variants = model.variants.filter((variant) => {
+        if (state.selectedStorage.size > 0) {
+          if (!state.selectedStorage.has(String(parseVariantStorageGb(variant.label)))) return false;
+        }
+        if (state.selectedColors.size > 0) {
+          if (!state.selectedColors.has(parseVariantColor(variant.label))) return false;
+        }
+        return true;
+      });
+      if (!variants.length) return null;
+      return {
+        ...model,
+        variants,
+        summary: {
+          variant_count: variants.length,
+          pickup_available: variants.filter((v) => v.pickup_status === "available").length,
+          delivery_available: variants.filter((v) => v.delivery_status === "available").length,
+        },
+      };
+    })
+    .filter(Boolean);
+}
+
+function badgeClass(status) {
+  if (status === "available") return "badge badge--available";
+  if (status === "unavailable") return "badge badge--unavailable";
+  return "badge badge--unknown";
+}
+
+function badgeLabel(status) {
+  if (status === "available") return "Available";
+  if (status === "unavailable") return "Unavailable";
+  if (status === "ineligible") return "Ineligible";
+  return "Unknown";
+}
+
+function renderStoreTags(stores) {
+  if (!stores.length) return '<span class="placeholder">—</span>';
+  return `<div class="store-tags">${stores
+    .map((store) => {
+      const when = store.available_when ? ` · ${store.available_when}` : "";
+      const label = `<strong>${store.store_name}</strong>${when}`;
+      if (store.order_url) {
+        return `<a class="store-tag store-tag--link" href="${store.order_url}" target="_blank" rel="noopener noreferrer" title="Order this model on Apple HK">
+          ${label}
+          <span class="store-tag__action">Order</span>
+        </a>`;
+      }
+      if (store.store_url) {
+        return `<a class="store-tag store-tag--link" href="${store.store_url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      }
+      return `<span class="store-tag">${label}</span>`;
+    })
+    .join("")}</div>`;
+}
+
+function renderModels(models) {
+  if (!models.length) {
+    els.modelsList.innerHTML = '<p class="placeholder">No variants match the current filters.</p>';
+    return;
+  }
+
+  els.modelsList.innerHTML = models
+    .map((model) => {
+      const inStock = model.summary.pickup_available > 0;
+      const rows = model.variants
+        .map((variant) => {
+          const rowClass = variant.pickup_status === "available" ? "row--available" : "";
+          const variantLabel = variant.order_url
+            ? `<a class="variant-link" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">${variant.label}</a>`
+            : variant.label;
+          return `
+            <tr class="${rowClass}">
+              <td>${variantLabel}</td>
+              <td><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
+              <td>${variant.pickup_status === "available" ? variant.pickup_when || variant.pickup_quote || "—" : "—"}</td>
+              <td>${renderStoreTags(variant.pickup_stores || [])}</td>
+              <td><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
+              <td>${variant.delivery_date}</td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      return `
+        <article class="model-panel ${inStock ? "model-panel--in-stock" : ""}" id="model-${model.id}">
+          <div class="model-panel__head">
+            <div>
+              <div class="model-panel__title">${model.name}</div>
+              <div class="model-panel__meta">${model.summary.variant_count} variants · ${model.summary.pickup_available} pickup · ${model.summary.delivery_available} delivery</div>
+            </div>
+            ${inStock ? '<span class="badge badge--available">In stock</span>' : '<span class="badge badge--unavailable">No pickup</span>'}
+          </div>
+          <div class="table-wrap">
+            <table class="availability-table">
+              <thead>
+                <tr>
+                  <th>Variant</th>
+                  <th>Pickup</th>
+                  <th>Can pick up</th>
+                  <th>Stores</th>
+                  <th>Delivery</th>
+                  <th>Ship date</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function collectFilteredPickupKeys(models) {
+  const available = [];
+  models.forEach((model) => {
+    model.variants.forEach((variant) => {
+      if (!matchesCurrentFilters(model, variant)) return;
+      (variant.pickup_stores || []).forEach((store) => {
+        available.push({
+          key: `${model.id}|${variant.part_number}|${store.store_number}`,
+          modelName: model.name,
+          label: variant.label,
+          storeName: store.store_name,
+          availableWhen: store.available_when || variant.pickup_when || "",
+        });
+      });
+    });
+  });
+  return available;
+}
+
+function maybeNotifyPickup(models) {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  if (!els.checkPickup.checked) return;
+
+  const available = collectFilteredPickupKeys(models);
+  const availableKeys = new Set(available.map((item) => item.key));
+
+  if (state.seedNotificationBaseline || !state.watching) {
+    state.previousPickupAvailable = availableKeys;
+    state.seedNotificationBaseline = false;
+    return;
+  }
+
+  available.forEach((item) => {
+    if (state.previousPickupAvailable.has(item.key)) return;
+    const whenText = item.availableWhen ? ` — pick up ${item.availableWhen}` : "";
+    new Notification(`${item.modelName} in stock (HK)`, {
+      body: `${item.label} at ${item.storeName}${whenText}`,
+    });
+  });
+
+  state.previousPickupAvailable = availableKeys;
+}
+
+function applySnapshot(data, sourceLabel = "snapshot") {
+  state.snapshot = data;
+  const models = filterModels(data.models || []);
+  const pickupSlots = models.reduce((sum, model) => sum + model.summary.pickup_available, 0);
+  const variantCount = models.reduce((sum, model) => sum + model.summary.variant_count, 0);
+
+  els.modelsInStock.textContent = String(models.filter((m) => m.summary.pickup_available > 0).length);
+  els.pickupAvailable.textContent = String(pickupSlots);
+  els.variantCount.textContent = String(variantCount);
+  els.lastChecked.textContent = data.checked_at ? new Date(data.checked_at).toLocaleString() : "—";
+  els.modelsMeta.textContent = `${data.summary?.stores_checked ?? 0} stores · ${sourceLabel}`;
+
+  if (data.errors?.length) {
+    els.errorBox.classList.remove("hidden");
+    els.errorBox.innerHTML = data.errors.map((err) => `<div>${err.part_number}: ${err.reason}</div>`).join("");
+  } else {
+    els.errorBox.classList.add("hidden");
+    els.errorBox.innerHTML = "";
+  }
+
+  renderModels(models);
+  maybeNotifyPickup(models);
+}
+
+async function loadSnapshotFallback() {
+  const stamp = Date.now();
+  const urls = [
+    `${REPO_RAW}/stock.json?t=${stamp}`,
+    `https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/stock.json?t=${stamp}`,
+  ];
+  let lastError = null;
+  for (const url of urls) {
+    try {
+      const data = await fetchJson(url);
+      applySnapshot(data, "snapshot");
+      return data;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("Could not load stock snapshot");
+}
+
+async function runLiveCheck() {
+  const selected = selectedParts();
+  const partNumbers = selected.map((item) => item.part);
+  const pickupResults = [];
+  const deliveryResults = [];
+  const errors = [];
+
+  if (!partNumbers.length) {
+    errors.push({ part_number: "*", reason: "no variants selected" });
+  } else {
+    if (els.checkPickup.checked) {
+      for (const batch of chunked(partNumbers)) {
+        try {
+          const { results, errors: batchErrors } = await checkPickup(batch);
+          pickupResults.push(...results);
+          errors.push(...batchErrors);
+        } catch (error) {
+          errors.push({ part_number: "*", reason: `pickup: ${error.message}` });
+          throw error;
+        }
+      }
+    }
+    if (els.checkDelivery.checked) {
+      for (const batch of chunked(partNumbers)) {
+        try {
+          const { results, errors: batchErrors } = await checkDelivery(batch);
+          deliveryResults.push(...results);
+          errors.push(...batchErrors);
+        } catch (error) {
+          errors.push({ part_number: "*", reason: `delivery: ${error.message}` });
+          throw error;
+        }
+      }
+    }
+  }
+
+  const models = groupByModel(selected, pickupResults, deliveryResults);
+  const pickupAvailable = pickupResults.filter((item) => item.status === "available").length;
+  return {
+    checked_at: new Date().toISOString(),
+    models,
+    errors,
+    summary: {
+      variant_count: partNumbers.length,
+      pickup_available: pickupAvailable,
+      stores_checked: new Set(pickupResults.map((item) => item.store_number).filter(Boolean)).size,
+      models_with_pickup: models.filter((model) => model.summary.pickup_available > 0).length,
+    },
+  };
+}
+
+async function runCheck() {
+  setStatus("loading", "Checking Apple HK…");
+  els.checkBtn.disabled = true;
+  try {
+    try {
+      const live = await runLiveCheck();
+      applySnapshot(live, "live");
+      setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching (live)" : "Ready");
+      return;
+    } catch (liveError) {
+      try {
+        await loadSnapshotFallback();
+        els.errorBox.classList.remove("hidden");
+        els.errorBox.textContent = `Live Apple check blocked here (${liveError.message}). Showing latest GitHub snapshot.`;
+        setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching" : "Ready");
+        return;
+      } catch (_snapshotError) {
+        const embedded = readEmbeddedJson("embedded-stock");
+        if (embedded) {
+          applySnapshot(embedded, "snapshot");
+          els.errorBox.classList.remove("hidden");
+          els.errorBox.textContent = `Live refresh is blocked on this preview page. Pull to reload for a newer snapshot. (${liveError.message})`;
+          setStatus("idle", "Snapshot");
+          return;
+        }
+        throw liveError;
+      }
+    }
+  } catch (error) {
+    setStatus("error", "Check failed");
+    els.errorBox.classList.remove("hidden");
+    els.errorBox.textContent = error.message;
+  } finally {
+    els.checkBtn.disabled = false;
+  }
+}
+
+function stopWatching() {
+  state.watching = false;
+  if (state.watchTimer) {
+    clearInterval(state.watchTimer);
+    state.watchTimer = null;
+  }
+  els.watchBtn.textContent = "Watch";
+  els.watchBtn.classList.remove("is-active");
+  setStatus("idle", "Ready");
+}
+
+function startWatching() {
+  const intervalMs = Math.max(Number(els.intervalRange.value), 30) * 1000;
+  state.watching = true;
+  state.seedNotificationBaseline = true;
+  els.watchBtn.textContent = "Stop";
+  els.watchBtn.classList.add("is-active");
+  setStatus("watching", "Watching (live)");
+  runCheck();
+  state.watchTimer = setInterval(runCheck, intervalMs);
+}
+
+function renderCatalogFilters() {
+  const { storages, colors } = collectStoragesAndColors(state.catalog);
+  catalogModels(state.catalog).forEach((model) => state.selectedModels.add(model.id));
+  renderChips(
+    els.modelChips,
+    catalogModels(state.catalog),
+    state.selectedModels,
+    (model) => model.name,
+    (model) => model.id
+  );
+  renderChips(els.storageChips, storages, state.selectedStorage, formatStorageLabel);
+  renderChips(els.colorChips, colors, state.selectedColors);
+}
+
+function loadCatalog() {
+  state.catalog = readEmbeddedJson("embedded-catalog");
+  if (!state.catalog) throw new Error("Embedded catalog missing");
+  renderCatalogFilters();
+}
+
+els.intervalRange.addEventListener("input", () => {
+  els.intervalLabel.textContent = `${els.intervalRange.value}s`;
+  if (state.watching) {
+    stopWatching();
+    startWatching();
+  }
+});
+
+els.checkPickup.addEventListener("change", onFiltersChanged);
+els.checkDelivery.addEventListener("change", onFiltersChanged);
+els.checkBtn.addEventListener("click", runCheck);
+els.watchBtn.addEventListener("click", () => {
+  if (state.watching) stopWatching();
+  else startWatching();
+});
+
+els.notifyBtn.addEventListener("click", async () => {
+  if (!("Notification" in window)) {
+    alert("Notifications are not supported in this browser.");
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  els.notifyBtn.textContent = permission === "granted" ? "On" : "Off";
+});
+
+try {
+  setStatus("loading", "Loading snapshot…");
+  loadCatalog();
+  const embedded = readEmbeddedJson("embedded-stock");
+  if (embedded) {
+    applySnapshot(embedded, "snapshot");
+    setStatus("idle", "Ready");
+  } else {
+    setStatus("idle", "Ready — tap Check");
+  }
+} catch (error) {
+  setStatus("error", "Load failed");
+  els.errorBox.classList.remove("hidden");
+  els.errorBox.textContent = error.message;
+}
+
+  </script>
 </body>
 </html>

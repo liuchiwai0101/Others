@@ -7,10 +7,7 @@ on:
       - cursor/iphone-18-stock-bot-1629
     paths:
       - "iphone-stock-bot/**"
-      - "docs/index.html"
-      - "docs/app.js"
-      - "docs/style.css"
-      - "docs/products.json"
+      - "docs/**"
       - ".github/workflows/pages.yml"
   schedule:
     - cron: "*/10 * * * *"
@@ -46,13 +43,13 @@ jobs:
       - name: Export live stock snapshot
         run: python3 iphone-stock-bot/export_stock.py
 
-      - name: Commit stock.json
+      - name: Commit stock snapshot and rebuilt site
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/stock.json
+          git add docs/stock.json docs/index.html
           if git diff --staged --quiet; then
-            echo "No stock.json changes"
+            echo "No snapshot changes"
           else
             git commit -m "chore: refresh HK iPhone stock snapshot [skip ci]"
             git push
