@@ -194,7 +194,6 @@ function renderModels(models) {
           return `
             <tr class="${rowClass}">
               <td>${variant.label}</td>
-              <td><code>${variant.part_number}</code></td>
               <td><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
               <td>${variant.pickup_status === "available" ? (variant.pickup_when || variant.pickup_quote || "—") : "—"}</td>
               <td>${renderStoreTags(variant.pickup_stores)}</td>
@@ -219,7 +218,6 @@ function renderModels(models) {
               <thead>
                 <tr>
                   <th>Variant</th>
-                  <th>SKU</th>
                   <th>Pickup</th>
                   <th>Can pick up</th>
                   <th>Stores</th>
