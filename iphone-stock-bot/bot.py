@@ -78,7 +78,10 @@ def format_pickup_lines(results: list[PickupResult], catalog: dict) -> list[str]
             for result in store_results:
                 if result.status != StockStatus.AVAILABLE:
                     continue
-                lines.append(f"      @ {_place_label(result)} [{result.store_number}]")
+            lines.append(
+                f"      @ {_place_label(result)} [{result.store_number}]"
+                + (f" — pick up {result.available_when}" if result.available_when else "")
+            )
         return lines
 
     lines.append("IN-STORE PICKUP (HK) — none available nearby")
@@ -172,6 +175,7 @@ def maybe_alert(
         label = labels.get(result.part_number, result.product_title)
         alerts.append(
             f"Pickup {result.status.value}: {label} at {_place_label(result)}"
+            + (f" — pick up {result.available_when}" if result.available_when else "")
         )
 
     labels = variant_labels(catalog)
@@ -210,6 +214,7 @@ def run_check(config: dict, catalog: dict, tracker: ChangeTracker | None) -> boo
             part_number=item["part_number"],
             status=StockStatus(item["status"]),
             quote=item["quote"],
+            available_when=item.get("available_when", ""),
             product_title=item["product_title"],
             store_name=item["store_name"],
             store_number=item["store_number"],

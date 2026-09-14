@@ -191,6 +191,7 @@ def _group_by_model(
                 "store_number": entry.store_number,
                 "city": entry.city,
                 "quote": entry.quote,
+                "available_when": entry.available_when,
             }
             for entry in pickup_entries
             if entry.status == StockStatus.AVAILABLE
@@ -214,6 +215,12 @@ def _group_by_model(
             "label": meta["label"],
             "pickup_status": pickup_status,
             "pickup_quote": pickup_entries[0].quote if pickup_entries else "",
+            "pickup_when": (
+                next(
+                    (entry.available_when for entry in pickup_entries if entry.status == StockStatus.AVAILABLE and entry.available_when),
+                    pickup_entries[0].available_when if pickup_entries else "",
+                )
+            ),
             "pickup_stores": available_stores,
             "delivery_status": delivery_status,
             "delivery_date": delivery_date,

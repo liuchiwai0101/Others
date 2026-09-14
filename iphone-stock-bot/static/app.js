@@ -172,7 +172,10 @@ function renderStoreTags(stores) {
     return '<span class="placeholder">—</span>';
   }
   return `<div class="store-tags">${stores
-    .map((store) => `<span class="store-tag">${store.store_name}</span>`)
+    .map((store) => {
+      const when = store.available_when ? ` · ${store.available_when}` : "";
+      return `<span class="store-tag"><strong>${store.store_name}</strong>${when}</span>`;
+    })
     .join("")}</div>`;
 }
 
@@ -193,6 +196,7 @@ function renderModels(models) {
               <td>${variant.label}</td>
               <td><code>${variant.part_number}</code></td>
               <td><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
+              <td>${variant.pickup_status === "available" ? (variant.pickup_when || variant.pickup_quote || "—") : "—"}</td>
               <td>${renderStoreTags(variant.pickup_stores)}</td>
               <td><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
               <td>${variant.delivery_date}</td>
@@ -217,6 +221,7 @@ function renderModels(models) {
                   <th>Variant</th>
                   <th>SKU</th>
                   <th>Pickup</th>
+                  <th>Can pick up</th>
                   <th>Stores</th>
                   <th>Delivery</th>
                   <th>Ship date</th>
@@ -242,6 +247,7 @@ function collectFilteredPickupKeys(models) {
           modelName: model.name,
           label: variant.label,
           storeName: store.store_name,
+          availableWhen: store.available_when || variant.pickup_when || "",
         });
       });
     });
@@ -266,7 +272,9 @@ function maybeNotifyPickup(models) {
   available.forEach((item) => {
     if (state.previousPickupAvailable.has(item.key)) return;
     new Notification(`${item.modelName} in stock (HK)`, {
-      body: `${item.label} at ${item.storeName}`,
+      body: item.availableWhen
+        ? `${item.label} at ${item.storeName} — pick up ${item.availableWhen}`
+        : `${item.label} at ${item.storeName}`,
     });
   });
 

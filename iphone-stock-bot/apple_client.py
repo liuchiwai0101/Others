@@ -30,6 +30,7 @@ class PickupResult:
     part_number: str
     status: StockStatus
     quote: str
+    available_when: str
     product_title: str
     store_name: str
     store_number: str
@@ -82,6 +83,23 @@ def _pickup_status(raw: str | None) -> StockStatus:
     if raw == "ineligible":
         return StockStatus.INELIGIBLE
     return StockStatus.UNKNOWN
+
+
+def _available_when(availability: dict[str, Any], regular: dict[str, Any]) -> str:
+    quote = (availability.get("pickupSearchQuote") or "").strip()
+    store_quote = (regular.get("storePickupQuote") or "").strip()
+
+    if quote.lower().startswith("available "):
+        return quote[len("Available ") :].strip()
+    if quote and quote.lower() not in {"currently unavailable", "unavailable"}:
+        return quote
+
+    # e.g. "Today at Apple ifc mall" / "Sun 20 Sept at Apple ifc mall"
+    if " at Apple " in store_quote:
+        return store_quote.split(" at Apple ", 1)[0].strip()
+    if store_quote.lower().startswith("today"):
+        return "Today"
+    return quote or store_quote or ""
 
 
 def _build_pickup_url(
@@ -146,6 +164,7 @@ def check_pickup(
                     part_number=part_number,
                     status=_pickup_status(availability.get("pickupDisplay")),
                     quote=availability.get("pickupSearchQuote") or regular.get("storePickupQuote") or "",
+                    available_when=_available_when(availability, regular),
                     product_title=(regular.get("storePickupProductTitle") or part_number).replace("\xa0", " "),
                     store_name=store_name,
                     store_number=store_number_value,

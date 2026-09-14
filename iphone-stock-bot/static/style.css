@@ -425,6 +425,11 @@ body {
   color: var(--muted);
 }
 
+.store-tag strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .placeholder {
   color: var(--muted);
 }
