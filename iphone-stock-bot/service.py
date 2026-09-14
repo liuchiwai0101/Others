@@ -21,12 +21,32 @@ from apple_client import (
 ROOT = Path(__file__).resolve().parent
 PRODUCTS_FILE = ROOT / "products.json"
 API_BATCH_SIZE = 16
-ORDER_URL_TEMPLATE = "https://www.apple.com/hk/shop/product/{part_number}"
+BUY_BASE = "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro"
+SCREEN_SIZE = {
+    "18-pro": "6.3-inch-display",
+    "18-pro-max": "6.9-inch-display",
+}
 
 
-def order_url_for(part_number: str) -> str:
-    # Direct product deep-link (Apple redirects to the configured buy page).
-    return ORDER_URL_TEMPLATE.format(part_number=urllib.parse.quote(part_number, safe="/"))
+def order_url_for(part_number: str, model_id: str | None = None, label: str | None = None) -> str:
+    """Build Apple HK buy URL with No trade-in + No AppleCare preselected."""
+    params = {
+        "product": part_number,
+        "purchaseOption": "fullPrice",
+        "tradeInSelection": "noTradeIn",
+        "acpart": "none",
+    }
+    query = urllib.parse.urlencode(params)
+
+    screen = SCREEN_SIZE.get(model_id or "")
+    if screen and label and " " in label:
+        storage, color = label.split(" ", 1)
+        slug = f"{screen}-{storage.lower()}-{color.lower()}"
+        return f"{BUY_BASE}/{slug}?{query}"
+
+    # Fallback deep-link (params may be dropped on redirect).
+    encoded = urllib.parse.quote(part_number, safe="/")
+    return f"https://www.apple.com/hk/shop/product/{encoded}?{query}"
 
 
 def _expand_storage_filters(values: list[int | str]) -> set[str]:
@@ -200,7 +220,7 @@ def _group_by_model(
                 "quote": entry.quote,
                 "available_when": entry.available_when,
                 "store_url": entry.store_url,
-                "order_url": order_url_for(part_number),
+                "order_url": order_url_for(part_number, model_id=model_id, label=meta["label"]),
             }
             for entry in pickup_entries
             if entry.status == StockStatus.AVAILABLE
@@ -222,7 +242,7 @@ def _group_by_model(
         variant = {
             "part_number": part_number,
             "label": meta["label"],
-            "order_url": order_url_for(part_number),
+            "order_url": order_url_for(part_number, model_id=model_id, label=meta["label"]),
             "pickup_status": pickup_status,
             "pickup_quote": pickup_entries[0].quote if pickup_entries else "",
             "pickup_when": (
