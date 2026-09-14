@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-09-14T09:38:14.472897+00:00",
+  "checked_at": "2026-09-14T09:41:58.719764+00:00",
   "part_numbers": [
     "MJXN4ZA/A",
     "MJXP4ZA/A",
@@ -227,7 +227,7 @@
       "name": "iPhone 18 Pro",
       "summary": {
         "variant_count": 16,
-        "pickup_available": 3,
+        "pickup_available": 4,
         "delivery_available": 16
       },
       "variants": [
@@ -252,8 +252,8 @@
               "store_name": "Causeway Bay",
               "store_number": "R409",
               "city": "Causeway Bay",
-              "quote": "Available Sat 19 Sept",
-              "available_when": "Sat 19 Sept",
+              "quote": "Available Sun 20 Sept",
+              "available_when": "Sun 20 Sept",
               "store_url": "https://www.apple.com/hk/retail/causewaybay",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"
             },
@@ -261,8 +261,8 @@
               "store_name": "Festival Walk",
               "store_number": "R485",
               "city": "Kowloon Tong",
-              "quote": "Available Sun 20 Sept",
-              "available_when": "Sun 20 Sept",
+              "quote": "Available Fri 18 Sept",
+              "available_when": "Fri 18 Sept",
               "store_url": "https://www.apple.com/hk/retail/festivalwalk",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"
             },
@@ -300,8 +300,8 @@
               "store_name": "Causeway Bay",
               "store_number": "R409",
               "city": "Causeway Bay",
-              "quote": "Available Sat 19 Sept",
-              "available_when": "Sat 19 Sept",
+              "quote": "Available Sun 20 Sept",
+              "available_when": "Sun 20 Sept",
               "store_url": "https://www.apple.com/hk/retail/causewaybay",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-silver?product=MJRQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"
             },
@@ -309,8 +309,8 @@
               "store_name": "Festival Walk",
               "store_number": "R485",
               "city": "Kowloon Tong",
-              "quote": "Available Sun 20 Sept",
-              "available_when": "Sun 20 Sept",
+              "quote": "Available Fri 18 Sept",
+              "available_when": "Fri 18 Sept",
               "store_url": "https://www.apple.com/hk/retail/festivalwalk",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-silver?product=MJRQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"
             },
@@ -357,8 +357,8 @@
               "store_name": "Causeway Bay",
               "store_number": "R409",
               "city": "Causeway Bay",
-              "quote": "Available Sat 19 Sept",
-              "available_when": "Sat 19 Sept",
+              "quote": "Available Sun 20 Sept",
+              "available_when": "Sun 20 Sept",
               "store_url": "https://www.apple.com/hk/retail/causewaybay",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"
             },
@@ -366,9 +366,18 @@
               "store_name": "Festival Walk",
               "store_number": "R485",
               "city": "Kowloon Tong",
-              "quote": "Available Sun 20 Sept",
-              "available_when": "Sun 20 Sept",
+              "quote": "Available Fri 18 Sept",
+              "available_when": "Fri 18 Sept",
               "store_url": "https://www.apple.com/hk/retail/festivalwalk",
+              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"
+            },
+            {
+              "store_name": "apm Hong Kong",
+              "store_number": "R673",
+              "city": "Kwun Tong",
+              "quote": "Available Sat 19 Sept",
+              "available_when": "Sat 19 Sept",
+              "store_url": "https://www.apple.com/hk/retail/apmhongkong",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"
             }
           ],
@@ -412,10 +421,20 @@
           "part_number": "MJRW4ZA/A",
           "label": "512GB Burgundy",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-burgundy?product=MJRW4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none",
-          "pickup_status": "unavailable",
+          "pickup_status": "available",
           "pickup_quote": "Currently unavailable",
-          "pickup_when": "Currently unavailable",
-          "pickup_stores": [],
+          "pickup_when": "Fri 18 Sept",
+          "pickup_stores": [
+            {
+              "store_name": "Festival Walk",
+              "store_number": "R485",
+              "city": "Kowloon Tong",
+              "quote": "Available Fri 18 Sept",
+              "available_when": "Fri 18 Sept",
+              "store_url": "https://www.apple.com/hk/retail/festivalwalk",
+              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-burgundy?product=MJRW4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&acpart=none"
+            }
+          ],
           "delivery_status": "available",
           "delivery_date": "29/09/2026 – 07/10/2026"
         },
@@ -525,7 +544,7 @@
   "summary": {
     "model_count": 2,
     "variant_count": 32,
-    "pickup_available": 12,
+    "pickup_available": 14,
     "pickup_checked": 32,
     "delivery_available": 32,
     "delivery_checked": 32,
