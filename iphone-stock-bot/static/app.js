@@ -143,7 +143,14 @@ function renderStoreTags(stores) {
   return `<div class="store-tags">${stores
     .map((store) => {
       const when = store.available_when ? ` · ${store.available_when}` : "";
-      return `<span class="store-tag"><strong>${store.store_name}</strong>${when}</span>`;
+      const href = store.order_url || store.store_url;
+      if (!href) {
+        return `<span class="store-tag"><strong>${store.store_name}</strong>${when}</span>`;
+      }
+      return `<a class="store-tag store-tag--link" href="${href}" target="_blank" rel="noopener noreferrer" title="Order on Apple HK">
+        <strong>${store.store_name}</strong>${when}
+        <span class="store-tag__action">Order</span>
+      </a>`;
     })
     .join("")}</div>`;
 }
@@ -160,6 +167,12 @@ function renderModels(models) {
       const rows = model.variants
         .map((variant) => {
           const rowClass = variant.pickup_status === "available" ? "row--available" : "";
+          const orderCell =
+            variant.pickup_status === "available" && variant.order_url
+              ? `<a class="order-link" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">Order now</a>`
+              : variant.delivery_status === "available" && variant.order_url
+                ? `<a class="order-link order-link--delivery" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">Buy online</a>`
+                : "—";
           return `
             <tr class="${rowClass}">
               <td>${variant.label}</td>
@@ -168,6 +181,7 @@ function renderModels(models) {
               <td>${renderStoreTags(variant.pickup_stores)}</td>
               <td><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
               <td>${variant.delivery_date}</td>
+              <td>${orderCell}</td>
             </tr>
           `;
         })
@@ -192,6 +206,7 @@ function renderModels(models) {
                   <th>Stores</th>
                   <th>Delivery</th>
                   <th>Ship date</th>
+                  <th>Buy</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
@@ -215,6 +230,7 @@ function collectFilteredPickupKeys(models) {
           label: variant.label,
           storeName: store.store_name,
           availableWhen: store.available_when || variant.pickup_when || "",
+          orderUrl: store.order_url || variant.order_url || "",
         });
       });
     });
@@ -238,10 +254,9 @@ function maybeNotifyPickup(models) {
 
   available.forEach((item) => {
     if (state.previousPickupAvailable.has(item.key)) return;
+    const whenText = item.availableWhen ? ` — pick up ${item.availableWhen}` : "";
     new Notification(`${item.modelName} in stock (HK)`, {
-      body: item.availableWhen
-        ? `${item.label} at ${item.storeName} — pick up ${item.availableWhen}`
-        : `${item.label} at ${item.storeName}`,
+      body: `${item.label} at ${item.storeName}${whenText}`,
     });
   });
 

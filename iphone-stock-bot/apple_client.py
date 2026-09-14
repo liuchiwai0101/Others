@@ -36,6 +36,7 @@ class PickupResult:
     store_number: str
     city: str
     state: str
+    store_url: str = ""
 
 
 @dataclass(frozen=True)
@@ -156,6 +157,11 @@ def check_pickup(
         store_number_value = store.get("storeNumber", "")
         city = store.get("city") or ""
         state = store.get("state") or "HK"
+        store_url = (
+            store.get("reservationUrl")
+            or store.get("makeReservationUrl")
+            or ""
+        ).replace("http://", "https://")
 
         for part_number, availability in (store.get("partsAvailability") or {}).items():
             regular = (availability.get("messageTypes") or {}).get("regular") or {}
@@ -170,6 +176,7 @@ def check_pickup(
                     store_number=store_number_value,
                     city=city,
                     state=state,
+                    store_url=store_url,
                 )
             )
 

@@ -20,6 +20,11 @@ from apple_client import (
 ROOT = Path(__file__).resolve().parent
 PRODUCTS_FILE = ROOT / "products.json"
 API_BATCH_SIZE = 16
+ORDER_URL_TEMPLATE = "https://www.apple.com/hk/shop/product/{part_number}"
+
+
+def order_url_for(part_number: str) -> str:
+    return ORDER_URL_TEMPLATE.format(part_number=part_number)
 
 
 def _expand_storage_filters(values: list[int | str]) -> set[str]:
@@ -192,6 +197,8 @@ def _group_by_model(
                 "city": entry.city,
                 "quote": entry.quote,
                 "available_when": entry.available_when,
+                "store_url": entry.store_url,
+                "order_url": order_url_for(part_number),
             }
             for entry in pickup_entries
             if entry.status == StockStatus.AVAILABLE
@@ -213,6 +220,7 @@ def _group_by_model(
         variant = {
             "part_number": part_number,
             "label": meta["label"],
+            "order_url": order_url_for(part_number),
             "pickup_status": pickup_status,
             "pickup_quote": pickup_entries[0].quote if pickup_entries else "",
             "pickup_when": (

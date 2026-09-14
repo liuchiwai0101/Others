@@ -220,6 +220,7 @@ def run_check(config: dict, catalog: dict, tracker: ChangeTracker | None) -> boo
             store_number=item["store_number"],
             city=item["city"],
             state=item["state"],
+            store_url=item.get("store_url", ""),
         )
         for item in result.pickup
     ]
