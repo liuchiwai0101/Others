@@ -331,7 +331,7 @@ function stopWatching() {
     clearInterval(state.watchTimer);
     state.watchTimer = null;
   }
-  els.watchBtn.textContent = "Start watching";
+  els.watchBtn.textContent = "Watch";
   els.watchBtn.classList.remove("is-active");
   setStatus("idle", "Ready");
 }
@@ -340,7 +340,7 @@ function startWatching() {
   const intervalMs = Number(els.intervalRange.value) * 1000;
   state.watching = true;
   state.seedNotificationBaseline = true;
-  els.watchBtn.textContent = "Stop watching";
+  els.watchBtn.textContent = "Stop";
   els.watchBtn.classList.add("is-active");
   setStatus("watching", "Watching");
   runCheck();
@@ -401,7 +401,7 @@ els.notifyBtn.addEventListener("click", async () => {
   }
   const permission = await Notification.requestPermission();
   els.notifyBtn.textContent =
-    permission === "granted" ? "Notifications enabled" : "Notifications blocked";
+    permission === "granted" ? "On" : "Off";
 });
 
 loadCatalog().then(() => runCheck());
