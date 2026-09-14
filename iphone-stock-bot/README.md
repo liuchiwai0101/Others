@@ -1,8 +1,8 @@
-# iPhone Stock Bot (Hong Kong)
+# iPhone 18 Pro Stock Bot (Hong Kong)
 
-Real-time stock checker for **all iPhone models** on **Apple Store Hong Kong** (`apple.com/hk`).
+Real-time stock checker for **iPhone 18 Pro** and **iPhone 18 Pro Max** on **Apple Store Hong Kong** (`apple.com/hk`).
 
-Tracks 7 models (73 variants): iPhone 18 Pro Max, 18 Pro, Air, 17, 17e, Duo, and 16.
+Tracks both models (32 variants): 256GB–2TB in Black, Silver, Burgundy, and Glacier.
 
 Polls Apple HK for:
 
@@ -22,7 +22,7 @@ python3 web_server.py
 # Open http://127.0.0.1:8080
 ```
 
-The UI shows an overview of all models plus detailed variant tables for pickup and delivery. Filter by model, storage, and colour; check once or auto-refresh with browser notifications when pickup stock appears.
+The UI shows an overview of 18 Pro and 18 Pro Max plus detailed variant tables for pickup and delivery. Filter by model, storage, and colour; check once or auto-refresh with browser notifications when pickup stock appears.
 
 ### CLI
 
@@ -83,7 +83,7 @@ python3 bot.py --store R428 --once   # ifc mall only
 
 ## Supported models (HK SKUs)
 
-All models and part numbers are in `products.json` under `models` (HK `ZA/A` SKUs).
+iPhone 18 Pro and iPhone 18 Pro Max part numbers are in `products.json` (HK `ZA/A` SKUs).
 
 ## How it works
 

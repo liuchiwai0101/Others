@@ -17,7 +17,7 @@ from service import catalog_models, load_catalog, run_stock_check
 ROOT = Path(__file__).resolve().parent
 STATIC_DIR = ROOT / "static"
 
-app = FastAPI(title="iPhone HK Stock Checker", version="2.0.0")
+app = FastAPI(title="iPhone 18 Pro HK Stock Checker", version="2.1.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 

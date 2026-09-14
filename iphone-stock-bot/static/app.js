@@ -227,7 +227,7 @@ function maybeNotifyPickup(models) {
 }
 
 async function runCheck() {
-  setStatus("loading", "Checking all models…");
+  setStatus("loading", "Checking 18 Pro & Pro Max…");
   els.checkBtn.disabled = true;
 
   try {
