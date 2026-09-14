@@ -437,29 +437,6 @@ body {
   letter-spacing: 0.03em;
 }
 
-.order-link {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: var(--accent);
-  color: white;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.order-link:hover {
-  filter: brightness(1.08);
-}
-
-.order-link--delivery {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--panel-border);
-  color: var(--text);
-}
-
 .variant-link {
   color: var(--text);
   font-weight: 600;
