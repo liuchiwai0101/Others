@@ -122,13 +122,6 @@ body {
   letter-spacing: 0.01em;
 }
 
-.controls-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
 .panel--results {
   padding: 22px;
 }
@@ -317,51 +310,6 @@ body {
 .section-meta {
   color: var(--muted);
   font-size: 0.84rem;
-}
-
-.overview-section {
-  margin-bottom: 24px;
-}
-
-.overview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
-}
-
-.overview-card {
-  padding: 16px;
-  border-radius: 14px;
-  border: 1px solid var(--panel-border);
-  background: var(--panel-elevated);
-  cursor: pointer;
-  transition: 0.15s ease;
-}
-
-.overview-card:hover {
-  border-color: rgba(41, 151, 255, 0.45);
-  transform: translateY(-1px);
-}
-
-.overview-card--in-stock {
-  border-color: rgba(48, 209, 88, 0.35);
-  background: linear-gradient(180deg, rgba(48, 209, 88, 0.08), var(--panel-elevated));
-}
-
-.overview-card__name {
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.overview-card__stats {
-  display: grid;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 0.84rem;
-}
-
-.overview-card__stats strong {
-  color: var(--text);
 }
 
 .models-list {

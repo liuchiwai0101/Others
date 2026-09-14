@@ -26,20 +26,6 @@
       <aside class="panel panel--controls">
         <h2>Filters</h2>
 
-        <div class="controls-grid">
-          <label class="field">
-            <span>District</span>
-            <select id="locationSelect"></select>
-          </label>
-
-          <label class="field">
-            <span>Store</span>
-            <select id="storeSelect">
-              <option value="">All nearby</option>
-            </select>
-          </label>
-        </div>
-
         <fieldset class="field field--compact">
           <legend>Models</legend>
           <div class="chip-group" id="modelChips"></div>
@@ -100,19 +86,9 @@
 
         <div class="errors hidden" id="errorBox"></div>
 
-        <section class="overview-section">
-          <div class="section-head">
-            <h2>Model overview</h2>
-            <span class="section-meta" id="overviewMeta"></span>
-          </div>
-          <div class="overview-grid" id="overviewGrid">
-            <p class="placeholder">Loading models…</p>
-          </div>
-        </section>
-
         <section class="models-section">
           <div class="section-head">
-            <h2>Availability by model</h2>
+            <h2>Availability</h2>
             <span class="section-meta" id="modelsMeta"></span>
           </div>
           <div class="models-list" id="modelsList">

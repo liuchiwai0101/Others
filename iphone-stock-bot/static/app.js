@@ -10,8 +10,6 @@ const state = {
 };
 
 const els = {
-  locationSelect: document.getElementById("locationSelect"),
-  storeSelect: document.getElementById("storeSelect"),
   modelChips: document.getElementById("modelChips"),
   storageChips: document.getElementById("storageChips"),
   colorChips: document.getElementById("colorChips"),
@@ -29,8 +27,6 @@ const els = {
   variantCount: document.getElementById("variantCount"),
   lastChecked: document.getElementById("lastChecked"),
   errorBox: document.getElementById("errorBox"),
-  overviewGrid: document.getElementById("overviewGrid"),
-  overviewMeta: document.getElementById("overviewMeta"),
   modelsList: document.getElementById("modelsList"),
   modelsMeta: document.getElementById("modelsMeta"),
 };
@@ -114,8 +110,9 @@ function selectedModelsList() {
 
 function buildRequestBody() {
   return {
-    location: els.locationSelect.value || null,
-    store_number: els.storeSelect.value || null,
+    // Always search all nearby HK stores (Central covers the full HK store set).
+    location: "Central",
+    store_number: null,
     models: selectedModelsList(),
     check_pickup: els.checkPickup.checked,
     check_online_delivery: els.checkDelivery.checked,
@@ -137,34 +134,6 @@ function badgeLabel(status) {
   if (status === "unavailable") return "Unavailable";
   if (status === "ineligible") return "Ineligible";
   return "Unknown";
-}
-
-function renderOverview(models) {
-  if (!models.length) {
-    els.overviewGrid.innerHTML = '<p class="placeholder">No model data returned.</p>';
-    return;
-  }
-
-  els.overviewGrid.innerHTML = models
-    .map((model) => {
-      const inStock = model.summary.pickup_available > 0;
-      return `
-        <article class="overview-card ${inStock ? "overview-card--in-stock" : ""}" data-model-id="${model.id}">
-          <div class="overview-card__name">${model.name}</div>
-          <div class="overview-card__stats">
-            <div>Pickup: <strong>${model.summary.pickup_available}</strong> / ${model.summary.variant_count} variants</div>
-            <div>Delivery: <strong>${model.summary.delivery_available}</strong> / ${model.summary.variant_count} buyable</div>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
-
-  els.overviewGrid.querySelectorAll(".overview-card").forEach((card) => {
-    card.addEventListener("click", () => {
-      document.getElementById(`model-${card.dataset.modelId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  });
 }
 
 function renderStoreTags(stores) {
@@ -300,7 +269,6 @@ async function runCheck() {
     els.variantCount.textContent = String(data.summary.variant_count ?? 0);
     els.lastChecked.textContent = new Date(data.checked_at).toLocaleString();
 
-    els.overviewMeta.textContent = `${data.summary.model_count} models`;
     els.modelsMeta.textContent = `${data.summary.stores_checked} stores checked`;
 
     if (data.errors?.length) {
@@ -311,7 +279,6 @@ async function runCheck() {
       els.errorBox.innerHTML = "";
     }
 
-    renderOverview(data.models || []);
     renderModels(data.models || []);
     maybeNotifyPickup(data.models || []);
 
@@ -351,16 +318,6 @@ async function loadCatalog() {
   const response = await fetch("/api/catalog");
   state.catalog = await response.json();
 
-  els.locationSelect.innerHTML = state.catalog.locations
-    .map((location) => `<option value="${location}">${location}</option>`)
-    .join("");
-
-  els.storeSelect.innerHTML =
-    '<option value="">All nearby stores</option>' +
-    Object.entries(state.catalog.stores)
-      .map(([id, name]) => `<option value="${id}">${name}</option>`)
-      .join("");
-
   state.catalog.models.forEach((model) => state.selectedModels.add(model.id));
 
   renderChips(
@@ -383,8 +340,6 @@ els.intervalRange.addEventListener("input", () => {
   }
 });
 
-els.locationSelect.addEventListener("change", onFiltersChanged);
-els.storeSelect.addEventListener("change", onFiltersChanged);
 els.checkPickup.addEventListener("change", onFiltersChanged);
 els.checkDelivery.addEventListener("change", onFiltersChanged);
 
