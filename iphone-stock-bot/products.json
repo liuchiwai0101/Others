@@ -12,6 +12,7 @@
   "models": {
     "18-pro-max": {
       "name": "iPhone 18 Pro Max",
+      "buy_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro",
       "variants": {
         "MJXN4ZA/A": "256GB Black",
         "MJXP4ZA/A": "256GB Silver",
@@ -33,6 +34,7 @@
     },
     "18-pro": {
       "name": "iPhone 18 Pro",
+      "buy_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro",
       "variants": {
         "MJRP4ZA/A": "256GB Black",
         "MJRQ4ZA/A": "256GB Silver",

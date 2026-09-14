@@ -143,16 +143,32 @@ function renderStoreTags(stores) {
   return `<div class="store-tags">${stores
     .map((store) => {
       const when = store.available_when ? ` · ${store.available_when}` : "";
-      const href = store.order_url || store.store_url;
-      if (!href) {
-        return `<span class="store-tag"><strong>${store.store_name}</strong>${when}</span>`;
+      const orderHref = store.order_url;
+      const storeHref = store.store_url;
+      const label = `<strong>${store.store_name}</strong>${when}`;
+      if (orderHref) {
+        return `<a class="store-tag store-tag--link" href="${orderHref}" target="_blank" rel="noopener noreferrer" title="Order this model on Apple HK">
+          ${label}
+          <span class="store-tag__action">Order</span>
+        </a>`;
       }
-      return `<a class="store-tag store-tag--link" href="${href}" target="_blank" rel="noopener noreferrer" title="Order on Apple HK">
-        <strong>${store.store_name}</strong>${when}
-        <span class="store-tag__action">Order</span>
-      </a>`;
+      if (storeHref) {
+        return `<a class="store-tag store-tag--link" href="${storeHref}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      }
+      return `<span class="store-tag">${label}</span>`;
     })
     .join("")}</div>`;
+}
+
+function renderOrderLink(variant) {
+  const href = variant.order_url;
+  if (!href) return "—";
+  const label = variant.pickup_status === "available" ? "Order now" : "Buy on Apple";
+  const cls =
+    variant.pickup_status === "available"
+      ? "order-link"
+      : "order-link order-link--delivery";
+  return `<a class="${cls}" href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
 }
 
 function renderModels(models) {
@@ -167,21 +183,18 @@ function renderModels(models) {
       const rows = model.variants
         .map((variant) => {
           const rowClass = variant.pickup_status === "available" ? "row--available" : "";
-          const orderCell =
-            variant.pickup_status === "available" && variant.order_url
-              ? `<a class="order-link" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">Order now</a>`
-              : variant.delivery_status === "available" && variant.order_url
-                ? `<a class="order-link order-link--delivery" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">Buy online</a>`
-                : "—";
+          const variantLabel = variant.order_url
+            ? `<a class="variant-link" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">${variant.label}</a>`
+            : variant.label;
           return `
             <tr class="${rowClass}">
-              <td>${variant.label}</td>
+              <td>${variantLabel}</td>
               <td><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
               <td>${variant.pickup_status === "available" ? (variant.pickup_when || variant.pickup_quote || "—") : "—"}</td>
               <td>${renderStoreTags(variant.pickup_stores)}</td>
               <td><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
               <td>${variant.delivery_date}</td>
-              <td>${orderCell}</td>
+              <td>${renderOrderLink(variant)}</td>
             </tr>
           `;
         })

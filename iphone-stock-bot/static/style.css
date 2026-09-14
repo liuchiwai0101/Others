@@ -460,6 +460,18 @@ body {
   color: var(--text);
 }
 
+.variant-link {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(41, 151, 255, 0.45);
+}
+
+.variant-link:hover {
+  color: #8ec8ff;
+  border-bottom-color: var(--accent);
+}
+
 .placeholder {
   color: var(--muted);
 }

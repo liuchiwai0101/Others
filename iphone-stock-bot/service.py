@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import urllib.parse
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,7 +25,8 @@ ORDER_URL_TEMPLATE = "https://www.apple.com/hk/shop/product/{part_number}"
 
 
 def order_url_for(part_number: str) -> str:
-    return ORDER_URL_TEMPLATE.format(part_number=part_number)
+    # Direct product deep-link (Apple redirects to the configured buy page).
+    return ORDER_URL_TEMPLATE.format(part_number=urllib.parse.quote(part_number, safe="/"))
 
 
 def _expand_storage_filters(values: list[int | str]) -> set[str]:
