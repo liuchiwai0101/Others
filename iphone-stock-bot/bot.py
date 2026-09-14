@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Real-time iPhone 18 Pro Max stock checker for Apple Store pickup and delivery."""
+"""Real-time iPhone 18 Pro Max stock checker for Apple Store Hong Kong."""
 
 from __future__ import annotations
 
@@ -79,6 +79,15 @@ def status_icon(status: StockStatus) -> str:
     }[status]
 
 
+def _place_label(result: PickupResult) -> str:
+    parts = [result.store_name]
+    if result.city:
+        parts.append(result.city)
+    if result.state and result.state != "HK":
+        parts.append(result.state)
+    return ", ".join(parts)
+
+
 def format_pickup_lines(results: list[PickupResult], catalog: dict) -> list[str]:
     lines: list[str] = []
     grouped: dict[str, list[PickupResult]] = {}
@@ -92,7 +101,7 @@ def format_pickup_lines(results: list[PickupResult], catalog: dict) -> list[str]
     }
 
     if available_parts:
-        lines.append("IN-STORE PICKUP — AVAILABLE")
+        lines.append("IN-STORE PICKUP (HK) — AVAILABLE")
         for part_number in sorted(available_parts):
             store_results = available_parts[part_number]
             label = catalog["variants"].get(part_number, store_results[0].product_title)
@@ -100,12 +109,10 @@ def format_pickup_lines(results: list[PickupResult], catalog: dict) -> list[str]
             for result in store_results:
                 if result.status != StockStatus.AVAILABLE:
                     continue
-                lines.append(
-                    f"      @ {result.store_name}, {result.city}, {result.state} [{result.store_number}]"
-                )
+                lines.append(f"      @ {_place_label(result)} [{result.store_number}]")
         return lines
 
-    lines.append("IN-STORE PICKUP — none available nearby")
+    lines.append("IN-STORE PICKUP (HK) — none available nearby")
     for part_number, store_results in sorted(grouped.items()):
         label = catalog["variants"].get(part_number, store_results[0].product_title)
         sample = store_results[0]
@@ -117,7 +124,7 @@ def format_pickup_lines(results: list[PickupResult], catalog: dict) -> list[str]
 
 
 def format_delivery_lines(results: list[DeliveryResult], catalog: dict) -> list[str]:
-    lines = ["ONLINE DELIVERY"]
+    lines = ["ONLINE DELIVERY (HK)"]
     for result in results:
         label = catalog["variants"].get(result.part_number, result.part_number)
         lines.append(
@@ -131,7 +138,7 @@ def notify_webhook(url: str, message: str) -> None:
     request = urllib.request.Request(
         url,
         data=payload,
-        headers={"Content-Type": "application/json", "User-Agent": "iphone-stock-bot/1.0"},
+        headers={"Content-Type": "application/json", "User-Agent": "iphone-stock-bot-hk/1.0"},
         method="POST",
     )
     try:
@@ -193,7 +200,7 @@ def maybe_alert(
             continue
         label = catalog["variants"].get(result.part_number, result.product_title)
         alerts.append(
-            f"Pickup {result.status.value}: {label} at {result.store_name} ({result.city}, {result.state})"
+            f"Pickup {result.status.value}: {label} at {_place_label(result)}"
         )
 
     for result in delivery_changes:
@@ -214,7 +221,7 @@ def maybe_alert(
         notify_webhook(webhook_url, message)
 
     if notifications.get("desktop_alert"):
-        notify_desktop("iPhone 18 Pro Max Stock Alert", message)
+        notify_desktop("iPhone 18 Pro Max HK Stock Alert", message)
 
 
 def run_check(config: dict, catalog: dict, tracker: ChangeTracker | None) -> bool:
@@ -224,7 +231,7 @@ def run_check(config: dict, catalog: dict, tracker: ChangeTracker | None) -> boo
         return False
 
     timestamp = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
-    print(f"\n[{timestamp}] Checking {len(part_numbers)} iPhone 18 Pro Max variant(s)...")
+    print(f"\n[{timestamp}] Checking {len(part_numbers)} iPhone 18 Pro Max (HK) variant(s)...")
 
     pickup_results: list[PickupResult] = []
     delivery_results: list[DeliveryResult] = []
@@ -233,7 +240,7 @@ def run_check(config: dict, catalog: dict, tracker: ChangeTracker | None) -> boo
     if config.get("check_pickup", True):
         pickup_results, pickup_errors = check_pickup(
             part_numbers,
-            zip_code=config.get("zip_code"),
+            location=config.get("location"),
             store_number=config.get("store_number"),
         )
         errors.extend(pickup_errors)
@@ -277,9 +284,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Create config.json from the example file",
     )
     parser.add_argument(
-        "--zip",
-        dest="zip_code",
-        help="Override zip code from config",
+        "--location",
+        help="Override HK district/area (e.g. Central, Causeway Bay, Tsim Sha Tsui)",
+    )
+    parser.add_argument(
+        "--store",
+        dest="store_number",
+        help="Override Apple Store ID (e.g. R428 for ifc mall)",
     )
     parser.add_argument(
         "--interval",
@@ -298,7 +309,10 @@ def main() -> int:
             print(f"{args.config} already exists")
             return 1
         save_default_config(args.config)
-        print(f"Created {args.config}. Edit zip_code and filters, then run: python bot.py")
+        print(
+            f"Created {args.config}. Edit location (HK district) and filters, "
+            "then run: python3 bot.py"
+        )
         return 0
 
     if not args.config.exists():
@@ -309,13 +323,23 @@ def main() -> int:
     config = load_json(args.config)
     catalog = load_json(PRODUCTS_FILE)
 
-    if args.zip_code:
-        config["zip_code"] = args.zip_code
+    if args.location:
+        config["location"] = args.location
+    if args.store_number:
+        config["store_number"] = args.store_number
     if args.interval:
         config["poll_interval_seconds"] = args.interval
 
-    if not config.get("zip_code") and not config.get("store_number") and config.get("check_pickup", True):
-        print("Set zip_code or store_number in config.json (or pass --zip).", file=sys.stderr)
+    if (
+        not config.get("location")
+        and not config.get("store_number")
+        and config.get("check_pickup", True)
+    ):
+        print(
+            "Set location (HK district) or store_number in config.json "
+            "(or pass --location / --store).",
+            file=sys.stderr,
+        )
         return 1
 
     tracker = None if args.once else ChangeTracker()
@@ -325,10 +349,10 @@ def main() -> int:
         return 0
 
     interval = max(15, int(config.get("poll_interval_seconds", 30)))
+    where = config.get("store_number") or config.get("location")
     print(
-        f"Watching iPhone 18 Pro Max stock every {interval}s "
-        f"near zip {config.get('zip_code') or config.get('store_number')} "
-        f"(Ctrl+C to stop)"
+        f"Watching iPhone 18 Pro Max (HK) stock every {interval}s "
+        f"near {where} (Ctrl+C to stop)"
     )
 
     try:

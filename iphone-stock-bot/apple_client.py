@@ -1,4 +1,4 @@
-"""Apple Store availability API client."""
+"""Apple Store Hong Kong availability API client."""
 
 from __future__ import annotations
 
@@ -14,7 +14,8 @@ USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
-BASE_URL = "https://www.apple.com/shop"
+# Hong Kong Apple Online Store only
+BASE_URL = "https://www.apple.com/hk/shop"
 
 
 class StockStatus(str, Enum):
@@ -83,7 +84,11 @@ def _pickup_status(raw: str | None) -> StockStatus:
     return StockStatus.UNKNOWN
 
 
-def _build_pickup_url(part_numbers: list[str], zip_code: str | None, store_number: str | None) -> str:
+def _build_pickup_url(
+    part_numbers: list[str],
+    location: str | None,
+    store_number: str | None,
+) -> str:
     params: list[tuple[str, str]] = [("pl", "true")]
     for index, part in enumerate(part_numbers):
         params.append((f"parts.{index}", part))
@@ -97,23 +102,23 @@ def _build_pickup_url(part_numbers: list[str], zip_code: str | None, store_numbe
                 ("fts", "true"),
             ]
         )
-    elif zip_code:
-        params.append(("location", zip_code))
+    elif location:
+        params.append(("location", location))
     else:
-        raise ValueError("zip_code or store_number is required for pickup checks")
+        raise ValueError("location or store_number is required for pickup checks")
 
     return f"{BASE_URL}/retail/pickup-message?{urllib.parse.urlencode(params)}"
 
 
 def check_pickup(
     part_numbers: list[str],
-    zip_code: str | None = None,
+    location: str | None = None,
     store_number: str | None = None,
 ) -> tuple[list[PickupResult], list[ApiError]]:
     if not part_numbers:
         return [], []
 
-    url = _build_pickup_url(part_numbers, zip_code, store_number)
+    url = _build_pickup_url(part_numbers, location, store_number)
     status_code, payload, error = _request(url)
     if error or payload is None:
         return [], [ApiError(part_number="*", reason=error or "unknown error")]
@@ -131,8 +136,8 @@ def check_pickup(
     for store in stores:
         store_name = store.get("storeName", "Unknown Store")
         store_number_value = store.get("storeNumber", "")
-        city = store.get("city", "")
-        state = store.get("state", "")
+        city = store.get("city") or ""
+        state = store.get("state") or "HK"
 
         for part_number, availability in (store.get("partsAvailability") or {}).items():
             regular = (availability.get("messageTypes") or {}).get("regular") or {}
@@ -199,7 +204,6 @@ def check_delivery(part_numbers: list[str]) -> tuple[list[DeliveryResult], list[
             lowered = date_text.lower()
             status = StockStatus.UNAVAILABLE if "unavailable" in lowered else StockStatus.AVAILABLE
 
-        product_title = (regular.get("deliveryOptionMessages") or [{}])[0]
         results.append(
             DeliveryResult(
                 part_number=part_number,

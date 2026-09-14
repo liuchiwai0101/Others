@@ -1,48 +1,55 @@
-# iPhone 18 Pro Max Stock Bot
+# iPhone 18 Pro Max Stock Bot (Hong Kong)
 
-Real-time stock checker for **iPhone 18 Pro Max** using Apple's official store APIs.
+Real-time stock checker for **iPhone 18 Pro Max** on the **Apple Store Hong Kong** (`apple.com/hk`).
 
-Polls Apple for:
+Polls Apple HK for:
 
-- **In-store pickup** availability near your ZIP code or a specific store
-- **Online delivery** ship dates
+- **In-store pickup** near a Hong Kong district/area or a specific Apple Store
+- **Online delivery** ship dates within Hong Kong
 
-Alerts you when availability changes (console, optional Discord/webhook, optional desktop notification).
+Alerts when availability changes (console, optional Discord/webhook, optional desktop notification).
 
 ## Quick start
 
 ```bash
 cd iphone-stock-bot
-python3 bot.py --init          # creates config.json
-# Edit config.json — set your zip_code and optional filters
-python3 bot.py                 # start watching (every 30s by default)
-python3 bot.py --once          # single check
-python3 bot.py --zip 10001 --once
+python3 bot.py --init
+# Edit config.json — set location (e.g. Central, Causeway Bay)
+python3 bot.py
+python3 bot.py --once
+python3 bot.py --location "Causeway Bay" --once
+python3 bot.py --store R428 --once   # ifc mall only
 ```
 
 ## Configuration
 
-Copy `config.example.json` to `config.json` (or run `python3 bot.py --init`).
-
 | Field | Description |
 | --- | --- |
-| `zip_code` | US ZIP for nearby store pickup search |
-| `store_number` | Optional Apple store ID (e.g. `R250`) instead of ZIP |
-| `poll_interval_seconds` | How often to poll (minimum 15s) |
-| `part_numbers` | `"all"` or a list like `["MJW44LL/A"]` |
+| `location` | HK district/area for nearby pickup (e.g. `Central`, `Tsim Sha Tsui`, `Causeway Bay`, `Sha Tin`) |
+| `store_number` | Optional Apple Store ID instead of district (see table below) |
+| `poll_interval_seconds` | Poll interval (minimum 15s) |
+| `part_numbers` | `"all"` or a list like `["MJXN4ZA/A"]` |
 | `filters.storage_gb` | e.g. `[256, 512]` |
-| `filters.colors` | e.g. `["Black", "Silver"]` |
-| `check_pickup` | Enable in-store checks |
-| `check_online_delivery` | Enable online ship-date checks |
-| `notifications.webhook_url` | Discord/Slack webhook URL for alerts |
-| `notifications.notify_on_available_only` | Only alert when stock becomes available |
-| `notifications.desktop_alert` | Use `notify-send` on Linux |
+| `filters.colors` | e.g. `["Black", "Glacier"]` |
+| `check_pickup` / `check_online_delivery` | Toggle checks |
+| `notifications.webhook_url` | Discord/Slack webhook for alerts |
+
+## Hong Kong Apple Stores
+
+| Store ID | Store |
+| --- | --- |
+| `R428` | ifc mall (Central) |
+| `R499` | Canton Road (Tsim Sha Tsui) |
+| `R409` | Causeway Bay |
+| `R485` | Festival Walk (Kowloon Tong) |
+| `R673` | apm Hong Kong (Kwun Tong) |
+| `R610` | New Town Plaza (Sha Tin) |
 
 ## Example: watch 256GB Black only
 
 ```json
 {
-  "zip_code": "94103",
+  "location": "Central",
   "poll_interval_seconds": 30,
   "part_numbers": "all",
   "filters": {
@@ -59,21 +66,15 @@ Copy `config.example.json` to `config.json` (or run `python3 bot.py --init`).
 }
 ```
 
-## Supported variants
+## Supported variants (HK SKUs)
 
-All 16 US iPhone 18 Pro Max SKUs are in `products.json` (256GB–2TB, Black/Silver/Burgundy/Glacier).
+All 16 Hong Kong iPhone 18 Pro Max part numbers (`ZA/A`) are in `products.json` — 256GB–2TB in Black, Silver, Burgundy, Glacier.
 
 ## How it works
 
-Uses Apple's undocumented but publicly accessible endpoints:
+Uses Apple Hong Kong store endpoints:
 
-- Pickup: `GET /shop/retail/pickup-message`
-- Delivery: `GET /shop/delivery-message`
+- Pickup: `GET https://www.apple.com/hk/shop/retail/pickup-message`
+- Delivery: `GET https://www.apple.com/hk/shop/delivery-message`
 
-Status is reported as **available**, **unavailable**, or **unknown** (on API/network errors — never guessed as out-of-stock).
-
-## Notes
-
-- Respect Apple's servers: don't poll faster than every 15 seconds.
-- Part numbers are US (`LL/A`) models; other countries need different SKUs in `products.json`.
-- This bot is unofficial and not affiliated with Apple.
+This bot is **HK-only** and is not affiliated with Apple. Poll no faster than every 15 seconds.
