@@ -1,3 +1,14 @@
+const BATCH_SIZE = 4;
+const LOCATION = "Central";
+const BUY_BASE = "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro";
+const APPLE_BASE = "https://www.apple.com/hk/shop";
+const REPO_RAW =
+  "https://raw.githubusercontent.com/liuchiwai0101/Others/cursor/iphone-18-stock-bot-1629/docs";
+const SCREEN_SIZE = {
+  "18-pro": "6.3-inch-display",
+  "18-pro-max": "6.9-inch-display",
+};
+
 const state = {
   catalog: null,
   snapshot: null,
@@ -119,14 +130,214 @@ function renderChips(container, values, selectedSet, labelFn = (v) => v, keyFn =
   });
 }
 
+function orderUrlFor(partNumber, modelId, label) {
+  const params = new URLSearchParams({
+    product: partNumber,
+    purchaseOption: "fullPrice",
+    tradeInSelection: "noTradeIn",
+    acpart: "none",
+  });
+  const screen = SCREEN_SIZE[modelId];
+  if (screen && label && label.includes(" ")) {
+    const [storage, ...colorParts] = label.split(" ");
+    const slug = `${screen}-${storage.toLowerCase()}-${colorParts.join(" ").toLowerCase()}`;
+    return `${BUY_BASE}/${slug}?${params}`;
+  }
+  return `https://www.apple.com/hk/shop/product/${encodeURIComponent(partNumber)}?${params}`;
+}
+
+function selectedParts() {
+  const parts = [];
+  catalogModels(state.catalog).forEach((model) => {
+    if (state.selectedModels.size > 0 && !state.selectedModels.has(model.id)) return;
+    Object.entries(model.variants).forEach(([part, label]) => {
+      if (state.selectedStorage.size > 0) {
+        if (!state.selectedStorage.has(String(parseVariantStorageGb(label)))) return;
+      }
+      if (state.selectedColors.size > 0) {
+        if (!state.selectedColors.has(parseVariantColor(label))) return;
+      }
+      parts.push({ part, label, modelId: model.id, modelName: model.name });
+    });
+  });
+  return parts;
+}
+
+function chunked(items, size = BATCH_SIZE) {
+  const out = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url, {
+    cache: "no-store",
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+  return response.json();
+}
+
+async function fetchAppleJson(appleUrl) {
+  const proxied = `https://r.jina.ai/${appleUrl}`;
+  const payload = await fetchJson(proxied);
+  const content = payload?.data?.content;
+  if (typeof content === "string" && content.trim()) {
+    return JSON.parse(content);
+  }
+  if (payload?.body) return payload;
+  throw new Error("Unexpected proxy response");
+}
+
+function pickupStatus(raw) {
+  if (raw === "available") return "available";
+  if (raw === "unavailable") return "unavailable";
+  if (raw === "ineligible") return "ineligible";
+  return "unknown";
+}
+
+function availableWhen(availability, regular) {
+  const quote = (availability.pickupSearchQuote || "").trim();
+  const storeQuote = (regular.storePickupQuote || "").trim();
+  if (quote.toLowerCase().startsWith("available ")) return quote.slice("Available ".length).trim();
+  if (quote && !["currently unavailable", "unavailable"].includes(quote.toLowerCase())) return quote;
+  if (storeQuote.includes(" at Apple ")) return storeQuote.split(" at Apple ", 1)[0].trim();
+  if (storeQuote.toLowerCase().startsWith("today")) return "Today";
+  return quote || storeQuote || "";
+}
+
+function buildPickupUrl(parts) {
+  const params = new URLSearchParams({ pl: "true", location: LOCATION });
+  parts.forEach((part, index) => params.append(`parts.${index}`, part));
+  return `${APPLE_BASE}/retail/pickup-message?${params}`;
+}
+
+function buildDeliveryUrl(parts) {
+  const params = new URLSearchParams({ mt: "regular" });
+  parts.forEach((part, index) => params.append(`parts.${index}`, part));
+  return `${APPLE_BASE}/delivery-message?${params}`;
+}
+
+async function checkPickup(parts) {
+  if (!parts.length) return { results: [], errors: [] };
+  const payload = await fetchAppleJson(buildPickupUrl(parts));
+  const body = payload.body || {};
+  if (body.errorMessage) return { results: [], errors: [{ part_number: "*", reason: body.errorMessage }] };
+  const stores = body.stores || [];
+  if (!stores.length) {
+    return {
+      results: [],
+      errors: [{ part_number: "*", reason: body.notAvailableNearby || "no stores returned" }],
+    };
+  }
+  const results = [];
+  stores.forEach((store) => {
+    const storeUrl = (store.reservationUrl || store.makeReservationUrl || "").replace("http://", "https://");
+    Object.entries(store.partsAvailability || {}).forEach(([partNumber, availability]) => {
+      const regular = (availability.messageTypes || {}).regular || {};
+      results.push({
+        part_number: partNumber,
+        status: pickupStatus(availability.pickupDisplay),
+        quote: availability.pickupSearchQuote || regular.storePickupQuote || "",
+        available_when: availableWhen(availability, regular),
+        store_name: store.storeName || "Unknown Store",
+        store_number: store.storeNumber || "",
+        city: store.city || "",
+        store_url: storeUrl,
+      });
+    });
+  });
+  return { results, errors: [] };
+}
+
+async function checkDelivery(parts) {
+  if (!parts.length) return { results: [], errors: [] };
+  const payload = await fetchAppleJson(buildDeliveryUrl(parts));
+  const deliveryMessage = (((payload.body || {}).content || {}).deliveryMessage) || {};
+  const results = parts.map((partNumber) => {
+    const partData = deliveryMessage[partNumber];
+    if (!partData) {
+      return { part_number: partNumber, status: "unknown", delivery_date: "unknown" };
+    }
+    const regular = partData.regular || {};
+    const options = regular.deliveryOptions || [];
+    const dateText = options[0]?.date || regular.orderByDeliveryBy || "unknown";
+    const buyability = regular.buyability || {};
+    const isBuyable = buyability.isBuyable;
+    const inventory = buyability.inventory;
+    let status = "unknown";
+    if (isBuyable === true && (inventory == null || inventory > 0)) status = "available";
+    else if (isBuyable === false || inventory === 0) status = "unavailable";
+    else status = String(dateText).toLowerCase().includes("unavailable") ? "unavailable" : "available";
+    return { part_number: partNumber, status, delivery_date: dateText };
+  });
+  return { results, errors: [] };
+}
+
+function groupByModel(selected, pickupResults, deliveryResults) {
+  const pickupByPart = {};
+  pickupResults.forEach((item) => {
+    (pickupByPart[item.part_number] ||= []).push(item);
+  });
+  const deliveryByPart = Object.fromEntries(deliveryResults.map((item) => [item.part_number, item]));
+
+  const grouped = {};
+  catalogModels(state.catalog).forEach((model) => {
+    grouped[model.id] = {
+      id: model.id,
+      name: model.name,
+      summary: { variant_count: 0, pickup_available: 0, delivery_available: 0 },
+      variants: [],
+    };
+  });
+
+  selected.forEach(({ part, label, modelId }) => {
+    const pickupEntries = pickupByPart[part] || [];
+    const availableStores = pickupEntries
+      .filter((entry) => entry.status === "available")
+      .map((entry) => ({
+        store_name: entry.store_name,
+        store_number: entry.store_number,
+        city: entry.city,
+        quote: entry.quote,
+        available_when: entry.available_when,
+        store_url: entry.store_url,
+        order_url: orderUrlFor(part, modelId, label),
+      }));
+    const pickupStatusValue = availableStores.length
+      ? "available"
+      : pickupEntries[0]?.status || "unknown";
+    const delivery = deliveryByPart[part];
+    const variant = {
+      part_number: part,
+      label,
+      order_url: orderUrlFor(part, modelId, label),
+      pickup_status: pickupStatusValue,
+      pickup_quote: pickupEntries[0]?.quote || "",
+      pickup_when:
+        pickupEntries.find((e) => e.status === "available" && e.available_when)?.available_when ||
+        pickupEntries[0]?.available_when ||
+        "",
+      pickup_stores: availableStores,
+      delivery_status: delivery?.status || "unknown",
+      delivery_date: delivery?.delivery_date || "unknown",
+    };
+    const modelEntry = grouped[modelId];
+    modelEntry.variants.push(variant);
+    modelEntry.summary.variant_count += 1;
+    if (pickupStatusValue === "available") modelEntry.summary.pickup_available += 1;
+    if (variant.delivery_status === "available") modelEntry.summary.delivery_available += 1;
+  });
+
+  const order = state.catalog.model_order || Object.keys(grouped);
+  return order.filter((id) => grouped[id]?.variants.length).map((id) => grouped[id]);
+}
+
 function filterModels(models) {
   return models
     .map((model) => {
-      if (state.selectedModels.size > 0 && !state.selectedModels.has(model.id)) {
-        return null;
-      }
+      if (state.selectedModels.size > 0 && !state.selectedModels.has(model.id)) return null;
       const variants = model.variants.filter((variant) => {
-        if (!els.checkPickup.checked && !els.checkDelivery.checked) return true;
         if (state.selectedStorage.size > 0) {
           if (!state.selectedStorage.has(String(parseVariantStorageGb(variant.label)))) return false;
         }
@@ -136,15 +347,13 @@ function filterModels(models) {
         return true;
       });
       if (!variants.length) return null;
-      const pickupAvailable = variants.filter((v) => v.pickup_status === "available").length;
-      const deliveryAvailable = variants.filter((v) => v.delivery_status === "available").length;
       return {
         ...model,
         variants,
         summary: {
           variant_count: variants.length,
-          pickup_available: pickupAvailable,
-          delivery_available: deliveryAvailable,
+          pickup_available: variants.filter((v) => v.pickup_status === "available").length,
+          delivery_available: variants.filter((v) => v.delivery_status === "available").length,
         },
       };
     })
@@ -285,7 +494,7 @@ function maybeNotifyPickup(models) {
   state.previousPickupAvailable = availableKeys;
 }
 
-function applySnapshot(data) {
+function applySnapshot(data, sourceLabel = "snapshot") {
   state.snapshot = data;
   const models = filterModels(data.models || []);
   const pickupSlots = models.reduce((sum, model) => sum + model.summary.pickup_available, 0);
@@ -295,7 +504,7 @@ function applySnapshot(data) {
   els.pickupAvailable.textContent = String(pickupSlots);
   els.variantCount.textContent = String(variantCount);
   els.lastChecked.textContent = data.checked_at ? new Date(data.checked_at).toLocaleString() : "—";
-  els.modelsMeta.textContent = `${data.summary?.stores_checked ?? 0} stores · snapshot`;
+  els.modelsMeta.textContent = `${data.summary?.stores_checked ?? 0} stores · ${sourceLabel}`;
 
   if (data.errors?.length) {
     els.errorBox.classList.remove("hidden");
@@ -309,21 +518,91 @@ function applySnapshot(data) {
   maybeNotifyPickup(models);
 }
 
-function assetUrl(path) {
-  const base = window.STOCK_ASSET_BASE || "";
-  if (!base) return `${path}?t=${Date.now()}`;
-  return `${base}${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`;
+async function loadSnapshotFallback() {
+  const stamp = Date.now();
+  const urls = [
+    `${REPO_RAW}/stock.json?t=${stamp}`,
+    `https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/stock.json?t=${stamp}`,
+  ];
+  let lastError = null;
+  for (const url of urls) {
+    try {
+      const data = await fetchJson(url);
+      applySnapshot(data, "snapshot");
+      return data;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("Could not load stock snapshot");
+}
+
+async function runLiveCheck() {
+  const selected = selectedParts();
+  const partNumbers = selected.map((item) => item.part);
+  const pickupResults = [];
+  const deliveryResults = [];
+  const errors = [];
+
+  if (!partNumbers.length) {
+    errors.push({ part_number: "*", reason: "no variants selected" });
+  } else {
+    if (els.checkPickup.checked) {
+      for (const batch of chunked(partNumbers)) {
+        try {
+          const { results, errors: batchErrors } = await checkPickup(batch);
+          pickupResults.push(...results);
+          errors.push(...batchErrors);
+        } catch (error) {
+          errors.push({ part_number: "*", reason: `pickup: ${error.message}` });
+          throw error;
+        }
+      }
+    }
+    if (els.checkDelivery.checked) {
+      for (const batch of chunked(partNumbers)) {
+        try {
+          const { results, errors: batchErrors } = await checkDelivery(batch);
+          deliveryResults.push(...results);
+          errors.push(...batchErrors);
+        } catch (error) {
+          errors.push({ part_number: "*", reason: `delivery: ${error.message}` });
+          throw error;
+        }
+      }
+    }
+  }
+
+  const models = groupByModel(selected, pickupResults, deliveryResults);
+  const pickupAvailable = pickupResults.filter((item) => item.status === "available").length;
+  return {
+    checked_at: new Date().toISOString(),
+    models,
+    errors,
+    summary: {
+      variant_count: partNumbers.length,
+      pickup_available: pickupAvailable,
+      stores_checked: new Set(pickupResults.map((item) => item.store_number).filter(Boolean)).size,
+      models_with_pickup: models.filter((model) => model.summary.pickup_available > 0).length,
+    },
+  };
 }
 
 async function runCheck() {
-  setStatus("loading", "Refreshing snapshot…");
+  setStatus("loading", "Live checking Apple HK…");
   els.checkBtn.disabled = true;
   try {
-    const response = await fetch(assetUrl("stock.json"), { cache: "no-store" });
-    if (!response.ok) throw new Error(`Could not load stock.json (${response.status})`);
-    const data = await response.json();
-    applySnapshot(data);
-    setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching" : "Ready");
+    try {
+      const live = await runLiveCheck();
+      applySnapshot(live, "live");
+      setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching (live)" : "Ready");
+    } catch (liveError) {
+      setStatus("loading", "Live check failed — loading snapshot…");
+      await loadSnapshotFallback();
+      els.errorBox.classList.remove("hidden");
+      els.errorBox.textContent = `Live refresh unavailable (${liveError.message}). Showing latest saved snapshot.`;
+      setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching" : "Ready");
+    }
   } catch (error) {
     setStatus("error", "Check failed");
     els.errorBox.classList.remove("hidden");
@@ -345,19 +624,33 @@ function stopWatching() {
 }
 
 function startWatching() {
-  const intervalMs = Number(els.intervalRange.value) * 1000;
+  const intervalMs = Math.max(Number(els.intervalRange.value), 30) * 1000;
   state.watching = true;
   state.seedNotificationBaseline = true;
   els.watchBtn.textContent = "Stop";
   els.watchBtn.classList.add("is-active");
-  setStatus("watching", "Watching");
+  setStatus("watching", "Watching (live)");
   runCheck();
   state.watchTimer = setInterval(runCheck, intervalMs);
 }
 
 async function loadCatalog() {
-  const response = await fetch(assetUrl("products.json"));
-  state.catalog = await response.json();
+  const stamp = Date.now();
+  const urls = [
+    `${REPO_RAW}/products.json?t=${stamp}`,
+    `https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/products.json?t=${stamp}`,
+  ];
+  let lastError = null;
+  for (const url of urls) {
+    try {
+      state.catalog = await fetchJson(url);
+      break;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (!state.catalog) throw lastError || new Error("Could not load products.json");
+
   const { storages, colors } = collectStoragesAndColors(state.catalog);
   catalogModels(state.catalog).forEach((model) => state.selectedModels.add(model.id));
   renderChips(
@@ -396,4 +689,10 @@ els.notifyBtn.addEventListener("click", async () => {
   els.notifyBtn.textContent = permission === "granted" ? "On" : "Off";
 });
 
-loadCatalog().then(() => runCheck());
+loadCatalog()
+  .then(() => runCheck())
+  .catch((error) => {
+    setStatus("error", "Load failed");
+    els.errorBox.classList.remove("hidden");
+    els.errorBox.textContent = error.message;
+  });
