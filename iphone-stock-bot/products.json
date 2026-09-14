@@ -1,0 +1,22 @@
+{
+  "model": "iPhone 18 Pro Max",
+  "country": "us",
+  "variants": {
+    "MJW44LL/A": "256GB Black",
+    "MJW54LL/A": "256GB Silver",
+    "MJW64LL/A": "256GB Burgundy",
+    "MJW74LL/A": "256GB Glacier",
+    "MJW84LL/A": "512GB Black",
+    "MJW94LL/A": "512GB Silver",
+    "MJWA4LL/A": "512GB Burgundy",
+    "MJWC4LL/A": "512GB Glacier",
+    "MJWD4LL/A": "1TB Black",
+    "MJWE4LL/A": "1TB Silver",
+    "MJWF4LL/A": "1TB Burgundy",
+    "MJWG4LL/A": "1TB Glacier",
+    "MJWH4LL/A": "2TB Black",
+    "MJWJ4LL/A": "2TB Silver",
+    "MJWK4LL/A": "2TB Burgundy",
+    "MJWL4LL/A": "2TB Glacier"
+  }
+}
