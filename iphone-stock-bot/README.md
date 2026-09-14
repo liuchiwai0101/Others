@@ -11,6 +11,19 @@ Alerts when availability changes (console, optional Discord/webhook, optional de
 
 ## Quick start
 
+### Web UI (recommended)
+
+```bash
+cd iphone-stock-bot
+pip install -r requirements.txt
+python3 web_server.py
+# Open http://127.0.0.1:8080
+```
+
+The UI lets you pick district/store, filter by storage/colour, check once, or auto-refresh with browser notifications when pickup stock appears.
+
+### CLI
+
 ```bash
 cd iphone-stock-bot
 python3 bot.py --init

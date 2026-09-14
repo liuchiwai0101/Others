@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iPhone 18 Pro Max — HK Stock</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header__brand">
+        <span class="header__badge">HK</span>
+        <div>
+          <h1>iPhone 18 Pro Max Stock</h1>
+          <p class="header__subtitle">Apple Store Hong Kong · real-time pickup & delivery</p>
+        </div>
+      </div>
+      <div class="header__status" id="statusBar">
+        <span class="status-dot status-dot--idle" id="statusDot"></span>
+        <span id="statusText">Ready</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel panel--controls">
+        <h2>Search settings</h2>
+
+        <label class="field">
+          <span>District / area</span>
+          <select id="locationSelect"></select>
+        </label>
+
+        <label class="field">
+          <span>Specific store (optional)</span>
+          <select id="storeSelect">
+            <option value="">All nearby stores</option>
+          </select>
+        </label>
+
+        <fieldset class="field">
+          <legend>Storage</legend>
+          <div class="chip-group" id="storageChips"></div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Colour</legend>
+          <div class="chip-group" id="colorChips"></div>
+        </fieldset>
+
+        <fieldset class="field field--inline">
+          <label class="toggle">
+            <input type="checkbox" id="checkPickup" checked>
+            <span>In-store pickup</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="checkDelivery" checked>
+            <span>Online delivery</span>
+          </label>
+        </fieldset>
+
+        <label class="field">
+          <span>Auto-refresh interval: <strong id="intervalLabel">30s</strong></span>
+          <input type="range" id="intervalRange" min="15" max="120" step="5" value="30">
+        </label>
+
+        <div class="actions">
+          <button class="btn btn--primary" id="checkBtn">Check now</button>
+          <button class="btn btn--secondary" id="watchBtn">Start watching</button>
+        </div>
+
+        <p class="hint">Polls Apple HK every 15s minimum. Enable browser notifications for pickup alerts.</p>
+        <button class="btn btn--ghost" id="notifyBtn">Enable notifications</button>
+      </aside>
+
+      <section class="panel panel--results">
+        <div class="summary" id="summaryCards">
+          <div class="summary-card">
+            <span class="summary-card__label">Pickup available</span>
+            <span class="summary-card__value" id="pickupAvailable">—</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__label">Stores checked</span>
+            <span class="summary-card__value" id="storesChecked">—</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__label">Delivery buyable</span>
+            <span class="summary-card__value" id="deliveryAvailable">—</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__label">Last checked</span>
+            <span class="summary-card__value summary-card__value--small" id="lastChecked">—</span>
+          </div>
+        </div>
+
+        <div class="errors hidden" id="errorBox"></div>
+
+        <section class="results-section">
+          <div class="section-head">
+            <h2>In-store pickup</h2>
+            <span class="section-meta" id="pickupMeta"></span>
+          </div>
+          <div class="results-grid" id="pickupResults">
+            <p class="placeholder">Run a check to see pickup availability across Hong Kong Apple Stores.</p>
+          </div>
+        </section>
+
+        <section class="results-section">
+          <div class="section-head">
+            <h2>Online delivery</h2>
+            <span class="section-meta" id="deliveryMeta"></span>
+          </div>
+          <div class="table-wrap">
+            <table class="results-table" id="deliveryTable">
+              <thead>
+                <tr>
+                  <th>Variant</th>
+                  <th>Part number</th>
+                  <th>Status</th>
+                  <th>Ship date</th>
+                </tr>
+              </thead>
+              <tbody id="deliveryResults">
+                <tr><td colspan="4" class="placeholder">Delivery dates will appear here.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
