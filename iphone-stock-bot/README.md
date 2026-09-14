@@ -11,9 +11,18 @@ Polls Apple HK for:
 
 Alerts when availability changes (console, optional Discord/webhook, optional desktop notification).
 
+## Live web UI
+
+Public static site (GitHub Pages), refreshed from Apple HK about every 10 minutes:
+
+- **GitHub Pages:** https://liuchiwai0101.github.io/Others/
+- **jsDelivr mirror:** https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/
+
+Source files live in `/docs` at the repo root. GitHub Actions runs `export_stock.py` and deploys the snapshot.
+
 ## Quick start
 
-### Web UI (recommended)
+### Local web UI (live checks)
 
 ```bash
 cd iphone-stock-bot
@@ -22,7 +31,7 @@ python3 web_server.py
 # Open http://127.0.0.1:8080
 ```
 
-The UI shows an overview of 18 Pro and 18 Pro Max plus detailed variant tables for pickup and delivery. Filter by model, storage, and colour; check once or auto-refresh with browser notifications when pickup stock appears.
+The UI shows 18 Pro and 18 Pro Max with pickup/delivery tables. Filter by model, storage, and colour; check once or auto-refresh with browser notifications when pickup stock appears.
 
 ### CLI
 
