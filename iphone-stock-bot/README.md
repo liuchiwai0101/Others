@@ -13,12 +13,17 @@ Alerts when availability changes (console, optional Discord/webhook, optional de
 
 ## Live web UI
 
-- **Open now (HTML preview):** https://htmlpreview.github.io/?https://github.com/liuchiwai0101/Others/blob/cursor/iphone-18-stock-bot-1629/docs/index.html
-- **GitHub Pages (after one-time enable):** https://liuchiwai0101.github.io/Others/
+**Open the site here:**
 
-To enable Pages: repo **Settings → Pages → Source: GitHub Actions**, then re-run the **Deploy stock site** workflow. The site refreshes Apple HK stock about every 10 minutes.
+https://htmlpreview.github.io/?https://github.com/liuchiwai0101/Others/blob/cursor/iphone-18-stock-bot-1629/docs/index.html
 
-Source files live in `/docs`. GitHub Actions runs `export_stock.py` and deploys the snapshot.
+Stock data is refreshed from Apple HK about every 10 minutes by GitHub Actions (`docs/stock.json`).
+
+Optional GitHub Pages URL (enable once under **Settings → Pages → Source: GitHub Actions**):
+
+https://liuchiwai0101.github.io/Others/
+
+Source files live in `/docs`.
 
 ## Quick start
 

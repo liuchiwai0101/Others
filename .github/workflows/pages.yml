@@ -1,32 +1,39 @@
-name: Deploy stock site
+name: Refresh stock site
 
 on:
   push:
     branches:
       - main
       - cursor/iphone-18-stock-bot-1629
+    paths:
+      - "iphone-stock-bot/**"
+      - "docs/index.html"
+      - "docs/app.js"
+      - "docs/style.css"
+      - "docs/products.json"
+      - ".github/workflows/pages.yml"
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
-  group: pages-stock
+  group: stock-site
   cancel-in-progress: true
 
 jobs:
-  refresh-and-deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  refresh:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -38,6 +45,30 @@ jobs:
 
       - name: Export live stock snapshot
         run: python3 iphone-stock-bot/export_stock.py
+
+      - name: Commit stock.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/stock.json
+          if git diff --staged --quiet; then
+            echo "No stock.json changes"
+          else
+            git commit -m "chore: refresh HK iPhone stock snapshot [skip ci]"
+            git push
+          fi
+
+  pages:
+    needs: refresh
+    if: github.event_name != 'schedule' || true
+    continue-on-error: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
