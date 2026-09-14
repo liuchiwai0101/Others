@@ -3,6 +3,7 @@ const state = {
   watching: false,
   watchTimer: null,
   previousPickupAvailable: new Set(),
+  seedNotificationBaseline: true,
   selectedModels: new Set(),
   selectedStorage: new Set(),
   selectedColors: new Set(),
@@ -44,6 +45,38 @@ function formatStorageLabel(value) {
   return `${value}GB`;
 }
 
+function parseVariantStorageGb(label) {
+  const storage = label.split(" ", 1)[0].toUpperCase();
+  if (storage.endsWith("TB")) return Math.round(parseFloat(storage) * 1024);
+  if (storage.endsWith("GB")) return parseInt(storage, 10);
+  return Number(storage);
+}
+
+function parseVariantColor(label) {
+  return label.split(" ").slice(1).join(" ");
+}
+
+function matchesCurrentFilters(model, variant) {
+  if (state.selectedModels.size > 0 && !state.selectedModels.has(model.id)) {
+    return false;
+  }
+  if (state.selectedStorage.size > 0) {
+    const storageGb = String(parseVariantStorageGb(variant.label));
+    if (!state.selectedStorage.has(storageGb)) return false;
+  }
+  if (state.selectedColors.size > 0) {
+    const color = parseVariantColor(variant.label);
+    if (!state.selectedColors.has(color)) return false;
+  }
+  return true;
+}
+
+function onFiltersChanged() {
+  // Drop stale baseline so notices never come from a previous wider filter set.
+  state.previousPickupAvailable = new Set();
+  state.seedNotificationBaseline = true;
+}
+
 function renderChips(container, values, selectedSet, labelFn = (v) => v, keyFn = (v) => String(v)) {
   container.innerHTML = "";
   values.forEach((value) => {
@@ -63,6 +96,7 @@ function renderChips(container, values, selectedSet, labelFn = (v) => v, keyFn =
         selectedSet.add(key);
         button.classList.add("chip--active");
       }
+      onFiltersChanged();
     });
     container.appendChild(button);
   });
@@ -197,30 +231,43 @@ function renderModels(models) {
     .join("");
 }
 
-function maybeNotifyPickup(models) {
-  if (!("Notification" in window) || Notification.permission !== "granted") return;
-
-  const availableKeys = new Set();
+function collectFilteredPickupKeys(models) {
+  const available = [];
   models.forEach((model) => {
     model.variants.forEach((variant) => {
+      if (!matchesCurrentFilters(model, variant)) return;
       variant.pickup_stores.forEach((store) => {
-        availableKeys.add(`${model.name}:${variant.label}:${store.store_number}`);
+        available.push({
+          key: `${model.id}|${variant.part_number}|${store.store_number}`,
+          modelName: model.name,
+          label: variant.label,
+          storeName: store.store_name,
+        });
       });
     });
   });
+  return available;
+}
 
-  availableKeys.forEach((key) => {
-    if (!state.previousPickupAvailable.has(key)) {
-      const [modelName, label, storeNumber] = key.split(":");
-      const model = models.find((entry) => entry.name === modelName);
-      const variant = model?.variants.find((entry) => entry.label === label);
-      const store = variant?.pickup_stores.find((entry) => entry.store_number === storeNumber);
-      if (store) {
-        new Notification(`${modelName} in stock (HK)`, {
-          body: `${label} at ${store.store_name}`,
-        });
-      }
-    }
+function maybeNotifyPickup(models) {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  if (!els.checkPickup.checked) return;
+
+  const available = collectFilteredPickupKeys(models);
+  const availableKeys = new Set(available.map((item) => item.key));
+
+  // After filter changes (or first load), capture current stock without notifying.
+  if (state.seedNotificationBaseline || !state.watching) {
+    state.previousPickupAvailable = availableKeys;
+    state.seedNotificationBaseline = false;
+    return;
+  }
+
+  available.forEach((item) => {
+    if (state.previousPickupAvailable.has(item.key)) return;
+    new Notification(`${item.modelName} in stock (HK)`, {
+      body: `${item.label} at ${item.storeName}`,
+    });
   });
 
   state.previousPickupAvailable = availableKeys;
@@ -286,6 +333,7 @@ function stopWatching() {
 function startWatching() {
   const intervalMs = Number(els.intervalRange.value) * 1000;
   state.watching = true;
+  state.seedNotificationBaseline = true;
   els.watchBtn.textContent = "Stop watching";
   els.watchBtn.classList.add("is-active");
   setStatus("watching", "Watching");
@@ -328,6 +376,11 @@ els.intervalRange.addEventListener("input", () => {
     startWatching();
   }
 });
+
+els.locationSelect.addEventListener("change", onFiltersChanged);
+els.storeSelect.addEventListener("change", onFiltersChanged);
+els.checkPickup.addEventListener("change", onFiltersChanged);
+els.checkDelivery.addEventListener("change", onFiltersChanged);
 
 els.checkBtn.addEventListener("click", runCheck);
 els.watchBtn.addEventListener("click", () => {

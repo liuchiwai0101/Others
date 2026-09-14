@@ -14,6 +14,16 @@ from pydantic import BaseModel, Field
 
 from service import catalog_models, load_catalog, run_stock_check
 
+
+def _storage_to_gb(token: str) -> int:
+    token = token.upper()
+    if token.endswith("TB"):
+        return int(float(token[:-2]) * 1024)
+    if token.endswith("GB"):
+        return int(token[:-2])
+    return int(token)
+
+
 ROOT = Path(__file__).resolve().parent
 STATIC_DIR = ROOT / "static"
 
@@ -54,7 +64,7 @@ async def catalog() -> dict[str, Any]:
     )
     storages = sorted(
         {
-            int(label.split(" ", 1)[0].replace("GB", "").replace("TB", "000"))
+            _storage_to_gb(label.split(" ", 1)[0])
             for model in models
             for label in model["variants"].values()
             if " " in label
