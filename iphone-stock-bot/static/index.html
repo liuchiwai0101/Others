@@ -24,57 +24,58 @@
 
     <main class="layout">
       <aside class="panel panel--controls">
-        <h2>Search settings</h2>
+        <h2>Filters</h2>
 
-        <label class="field">
-          <span>District / area</span>
-          <select id="locationSelect"></select>
-        </label>
+        <div class="controls-grid">
+          <label class="field">
+            <span>District</span>
+            <select id="locationSelect"></select>
+          </label>
 
-        <label class="field">
-          <span>Specific store (optional)</span>
-          <select id="storeSelect">
-            <option value="">All nearby stores</option>
-          </select>
-        </label>
+          <label class="field">
+            <span>Store</span>
+            <select id="storeSelect">
+              <option value="">All nearby</option>
+            </select>
+          </label>
+        </div>
 
-        <fieldset class="field">
+        <fieldset class="field field--compact">
           <legend>Models</legend>
           <div class="chip-group" id="modelChips"></div>
         </fieldset>
 
-        <fieldset class="field">
+        <fieldset class="field field--compact">
           <legend>Storage</legend>
           <div class="chip-group" id="storageChips"></div>
         </fieldset>
 
-        <fieldset class="field">
+        <fieldset class="field field--compact">
           <legend>Colour</legend>
-          <div class="chip-group chip-group--scroll" id="colorChips"></div>
+          <div class="chip-group" id="colorChips"></div>
         </fieldset>
 
-        <fieldset class="field field--inline">
+        <fieldset class="field field--toggles">
           <label class="toggle">
             <input type="checkbox" id="checkPickup" checked>
-            <span>In-store pickup</span>
+            <span>Pickup</span>
           </label>
           <label class="toggle">
             <input type="checkbox" id="checkDelivery" checked>
-            <span>Online delivery</span>
+            <span>Delivery</span>
           </label>
         </fieldset>
 
-        <label class="field">
-          <span>Auto-refresh: <strong id="intervalLabel">30s</strong></span>
+        <label class="field field--compact">
+          <span>Refresh <strong id="intervalLabel">30s</strong></span>
           <input type="range" id="intervalRange" min="15" max="120" step="5" value="30">
         </label>
 
-        <div class="actions">
-          <button class="btn btn--primary" id="checkBtn">Check now</button>
-          <button class="btn btn--secondary" id="watchBtn">Start watching</button>
+        <div class="actions actions--compact">
+          <button class="btn btn--primary" id="checkBtn">Check</button>
+          <button class="btn btn--secondary" id="watchBtn">Watch</button>
+          <button class="btn btn--ghost" id="notifyBtn">Notify</button>
         </div>
-
-        <button class="btn btn--ghost" id="notifyBtn">Enable notifications</button>
       </aside>
 
       <section class="panel panel--results">

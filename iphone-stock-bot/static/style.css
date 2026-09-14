@@ -98,8 +98,8 @@ body {
 
 .layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 20px;
+  grid-template-columns: 248px 1fr;
+  gap: 16px;
 }
 
 .panel {
@@ -110,10 +110,22 @@ body {
 }
 
 .panel--controls {
-  padding: 22px;
+  padding: 14px 14px 12px;
   height: fit-content;
   position: sticky;
-  top: 20px;
+  top: 16px;
+}
+
+.panel--controls h2 {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+}
+
+.controls-grid {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .panel--results {
@@ -127,17 +139,21 @@ body {
 
 .field {
   display: block;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   border: 0;
   padding: 0;
+}
+
+.field--compact {
+  margin-bottom: 8px;
 }
 
 .field legend,
 .field > span {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.74rem;
 }
 
 .field select,
@@ -146,32 +162,29 @@ body {
 }
 
 .field select {
-  padding: 11px 12px;
-  border-radius: 12px;
+  padding: 7px 9px;
+  border-radius: 9px;
   border: 1px solid var(--panel-border);
   background: #0d1118;
   color: var(--text);
+  font-size: 0.8rem;
 }
 
 .chip-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-}
-
-.chip-group--scroll {
-  max-height: 120px;
-  overflow-y: auto;
+  gap: 5px;
 }
 
 .chip {
   border: 1px solid var(--panel-border);
   background: #0d1118;
   color: var(--text);
-  padding: 7px 11px;
+  padding: 4px 8px;
   border-radius: 999px;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
+  line-height: 1.2;
 }
 
 .chip--active {
@@ -179,16 +192,24 @@ body {
   border-color: var(--accent);
 }
 
-.field--inline {
+.field--toggles {
   display: grid;
-  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .toggle {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.toggle input {
+  margin: 0;
 }
 
 .actions {
@@ -196,12 +217,23 @@ body {
   gap: 10px;
 }
 
+.actions--compact {
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-top: 4px;
+}
+
 .btn {
   border: 0;
-  border-radius: 12px;
+  border-radius: 9px;
   padding: 12px 16px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.panel--controls .btn {
+  padding: 8px 6px;
+  font-size: 0.78rem;
 }
 
 .btn--primary { background: var(--accent); color: white; }
@@ -215,11 +247,13 @@ body {
   border-color: rgba(48, 209, 88, 0.35);
 }
 .btn--ghost {
-  width: 100%;
-  margin-top: 10px;
   background: transparent;
   color: var(--muted);
   border: 1px dashed var(--panel-border);
+}
+
+.panel--controls .btn--ghost {
+  margin-top: 0;
 }
 
 .summary {
