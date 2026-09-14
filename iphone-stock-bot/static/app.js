@@ -160,17 +160,6 @@ function renderStoreTags(stores) {
     .join("")}</div>`;
 }
 
-function renderOrderLink(variant) {
-  const href = variant.order_url;
-  if (!href) return "—";
-  const label = variant.pickup_status === "available" ? "Order now" : "Buy on Apple";
-  const cls =
-    variant.pickup_status === "available"
-      ? "order-link"
-      : "order-link order-link--delivery";
-  return `<a class="${cls}" href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
-}
-
 function renderModels(models) {
   if (!models.length) {
     els.modelsList.innerHTML = '<p class="placeholder">No availability data.</p>';
@@ -194,7 +183,6 @@ function renderModels(models) {
               <td>${renderStoreTags(variant.pickup_stores)}</td>
               <td><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
               <td>${variant.delivery_date}</td>
-              <td>${renderOrderLink(variant)}</td>
             </tr>
           `;
         })
@@ -219,7 +207,6 @@ function renderModels(models) {
                   <th>Stores</th>
                   <th>Delivery</th>
                   <th>Ship date</th>
-                  <th>Buy</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
