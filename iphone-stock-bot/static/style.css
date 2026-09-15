@@ -14,7 +14,7 @@
   --warning: #ffd60a;
   --radius: 16px;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-  font-family: "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  font-family: "PingFang HK", "PingFang TC", "Noto Sans TC", "SF Pro Text", "Segoe UI", system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -68,6 +68,36 @@ body {
 .header__subtitle {
   margin: 4px 0 0;
   color: var(--muted);
+}
+
+.header__tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.lang-btn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 11px;
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.lang-btn.is-active {
+  background: var(--accent-soft);
+  color: var(--text);
 }
 
 .header__status {

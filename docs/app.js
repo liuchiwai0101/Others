@@ -10,7 +10,150 @@ const SCREEN_SIZE = {
   "18-pro-max": "6.9-inch-display",
 };
 
+const LANG_KEY = "iphone-stock-lang";
+const I18N = {
+  zh: {
+    title: "iPhone 香港庫存",
+    subtitle: "Duo、18 Pro 及 18 Pro Max · Apple Store 香港 · 取貨及送貨",
+    filters: "篩選",
+    models: "型號",
+    storage: "容量",
+    colour: "顏色",
+    refresh: "更新",
+    check: "查詢",
+    watch: "監察",
+    stop: "停止",
+    notify: "通知",
+    notifyOn: "已開",
+    notifyOff: "已關",
+    modelsInStock: "有貨型號",
+    pickupSlots: "取貨名額",
+    variantsChecked: "已查款式",
+    lastChecked: "上次查詢",
+    availability: "供應情況",
+    loadingAvailability: "正在載入 iPhone Duo、18 Pro 及 18 Pro Max 供應情況…",
+    noMatch: "沒有款式符合目前篩選。",
+    variant: "款式",
+    pickup: "取貨",
+    canPickUp: "可取時間",
+    stores: "零售店",
+    delivery: "送貨",
+    shipDate: "送貨日期",
+    inStock: "有貨",
+    noPickup: "暫無取貨",
+    yes: "有",
+    no: "沒有",
+    na: "不適用",
+    unknown: "未知",
+    order: "訂購",
+    orderTitle: "前往 Apple 香港訂購此型號",
+    meta: "{variants} 款 · {pickup} 取貨 · {delivery} 送貨",
+    storesMeta: "{count} 間零售店 · {source}",
+    live: "即時",
+    snapshot: "快照",
+    ready: "就緒",
+    readyTap: "就緒 — 請按查詢",
+    loading: "載入中…",
+    loadingSnapshot: "正在載入快照…",
+    checking: "正在查詢 Apple 香港…",
+    watching: "監察中",
+    watchingLive: "監察中（即時）",
+    refreshingSnapshot: "正在更新快照…",
+    checkFailed: "查詢失敗",
+    rateLimited: "即時查詢受到限制，已保留上次已知庫存。",
+    liveBlocked: "即時查詢未能完成（{error}）。改為顯示最新 GitHub 快照。",
+    liveBlockedPreview: "此預覽頁無法即時更新。下拉重新載入以取得較新快照。（{error}）",
+    snapshotFailed: "快照更新失敗（{error}）。",
+    snapshotMissing: "未能載入庫存快照",
+    notifyUnsupported: "此瀏覽器不支援通知。",
+    notifyTitle: "{model} 香港有貨",
+    notifyBody: "{label}，{store}{when}",
+    notifyWhen: " — 可取 {when}",
+    sourceLive: "live",
+    sourceSnapshot: "snapshot",
+  },
+  en: {
+    title: "iPhone HK Stock",
+    subtitle: "Duo, 18 Pro & 18 Pro Max · Apple Store Hong Kong · pickup & delivery",
+    filters: "Filters",
+    models: "Models",
+    storage: "Storage",
+    colour: "Colour",
+    refresh: "Refresh",
+    check: "Check",
+    watch: "Watch",
+    stop: "Stop",
+    notify: "Notify",
+    notifyOn: "On",
+    notifyOff: "Off",
+    modelsInStock: "Models in stock",
+    pickupSlots: "Pickup slots",
+    variantsChecked: "Variants checked",
+    lastChecked: "Last checked",
+    availability: "Availability",
+    loadingAvailability: "Loading iPhone Duo, 18 Pro and 18 Pro Max availability…",
+    noMatch: "No variants match the current filters.",
+    variant: "Variant",
+    pickup: "Pickup",
+    canPickUp: "Can pick up",
+    stores: "Stores",
+    delivery: "Delivery",
+    shipDate: "Ship date",
+    inStock: "In stock",
+    noPickup: "No pickup",
+    yes: "Yes",
+    no: "No",
+    na: "N/A",
+    unknown: "unknown",
+    order: "Order",
+    orderTitle: "Order this model on Apple HK",
+    meta: "{variants} variants · {pickup} pickup · {delivery} delivery",
+    storesMeta: "{count} stores · {source}",
+    live: "live",
+    snapshot: "snapshot",
+    ready: "Ready",
+    readyTap: "Ready — tap Check",
+    loading: "Loading…",
+    loadingSnapshot: "Loading snapshot…",
+    checking: "Checking Apple HK…",
+    watching: "Watching",
+    watchingLive: "Watching (live)",
+    refreshingSnapshot: "Refreshing snapshot…",
+    checkFailed: "Check failed",
+    rateLimited: "Live Apple check was rate-limited. Kept last known stock for failed requests.",
+    liveBlocked: "Live Apple check blocked here ({error}). Showing latest GitHub snapshot.",
+    liveBlockedPreview: "Live refresh is blocked on this preview page. Pull to reload for a newer snapshot. ({error})",
+    snapshotFailed: "Snapshot refresh failed ({error}).",
+    snapshotMissing: "Could not load stock snapshot",
+    notifyUnsupported: "Notifications are not supported in this browser.",
+    notifyTitle: "{model} in stock (HK)",
+    notifyBody: "{label} at {store}{when}",
+    notifyWhen: " — pick up {when}",
+    sourceLive: "live",
+    sourceSnapshot: "snapshot",
+  },
+};
+const COLOR_ZH = {
+  Black: "黑色",
+  Silver: "銀色",
+  Burgundy: "勃艮第色",
+  Glacier: "冰川色",
+  "Star White": "星光白色",
+  "Night Sky": "夜空色",
+};
+const STORE_ZH = {
+  "ifc mall": "ifc mall（中環）",
+  "Canton Road": "廣東道（尖沙咀）",
+  "Causeway Bay": "銅鑼灣",
+  "Festival Walk": "又一城（九龍塘）",
+  "apm Hong Kong": "apm（觀塘）",
+  "New Town Plaza": "新城市廣場（沙田）",
+};
+
 const state = {
+  lang: "zh",
+  statusKey: "loading",
+  sourceLabel: "snapshot",
   catalog: null,
   snapshot: null,
   watching: false,
@@ -40,11 +183,108 @@ const els = {
   errorBox: document.getElementById("errorBox"),
   modelsList: document.getElementById("modelsList"),
   modelsMeta: document.getElementById("modelsMeta"),
+  langZh: document.getElementById("langZh"),
+  langEn: document.getElementById("langEn"),
 };
 
-function setStatus(mode, text) {
+function readSavedLang() {
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (saved === "en" || saved === "zh") return saved;
+  } catch (_error) {
+    /* ignore */
+  }
+  return "zh";
+}
+
+function t(key, vars = {}) {
+  const table = I18N[state.lang] || I18N.zh;
+  let text = table[key] || I18N.en[key] || key;
+  Object.entries(vars).forEach(([name, value]) => {
+    text = text.replaceAll(`{${name}}`, String(value));
+  });
+  return text;
+}
+
+function localeTag() {
+  return state.lang === "zh" ? "zh-HK" : "en-HK";
+}
+
+function colorLabel(color) {
+  if (state.lang === "zh" && COLOR_ZH[color]) return COLOR_ZH[color];
+  return color;
+}
+
+function variantDisplayLabel(label) {
+  const storage = label.split(" ", 1)[0];
+  const color = parseVariantColor(label);
+  return color ? `${storage} ${colorLabel(color)}` : label;
+}
+
+function storeDisplayName(name) {
+  if (state.lang !== "zh" || !name) return name;
+  const match = Object.entries(STORE_ZH).find(([english]) => name.startsWith(english) || name.includes(english));
+  return match ? match[1] : name;
+}
+
+function localizeAppleText(text) {
+  if (text == null || text === "") return text;
+  if (state.lang !== "zh") {
+    return text === "unknown" ? t("unknown") : text;
+  }
+  const replacements = [
+    ["Currently Unavailable", "暫時未能提供"],
+    ["Currently unavailable", "暫時未能提供"],
+    ["currently unavailable", "暫時未能提供"],
+    ["Unavailable", "未能提供"],
+    ["Today", "今日"],
+    ["unknown", "未知"],
+  ];
+  let out = String(text);
+  replacements.forEach(([en, zh]) => {
+    out = out.replaceAll(en, zh);
+  });
+  return out;
+}
+
+function applyStaticCopy() {
+  document.documentElement.lang = localeTag();
+  document.title = t("title");
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.getAttribute("data-i18n"));
+  });
+  if (els.langZh) els.langZh.classList.toggle("is-active", state.lang === "zh");
+  if (els.langEn) els.langEn.classList.toggle("is-active", state.lang === "en");
+  updateActionButtons();
+}
+
+function updateActionButtons() {
+  els.watchBtn.textContent = state.watching ? t("stop") : t("watch");
+  if (!("Notification" in window)) {
+    els.notifyBtn.textContent = t("notify");
+    return;
+  }
+  els.notifyBtn.textContent = Notification.permission === "granted" ? t("notifyOn") : t("notify");
+}
+
+function setLang(lang) {
+  state.lang = lang === "en" ? "en" : "zh";
+  try {
+    localStorage.setItem(LANG_KEY, state.lang);
+  } catch (_error) {
+    /* ignore */
+  }
+  applyStaticCopy();
+  if (state.catalog) renderCatalogFilters();
+  if (state.snapshot) applySnapshot(state.snapshot, state.sourceLabel);
+  setStatusMode(state.statusMode || "idle", state.statusKey || "ready");
+}
+
+function setStatusMode(mode, key) {
+  state.statusMode = mode;
+  state.statusKey = key;
   els.statusDot.className = `status-dot status-dot--${mode}`;
-  els.statusText.textContent = text;
+  els.statusText.textContent = t(key);
 }
 
 function formatStorageLabel(value) {
@@ -478,9 +718,9 @@ function badgeClass(status) {
 }
 
 function badgeLabel(status) {
-  if (status === "available") return "Yes";
-  if (status === "unavailable") return "No";
-  if (status === "ineligible") return "N/A";
+  if (status === "available") return t("yes");
+  if (status === "unavailable") return t("no");
+  if (status === "ineligible") return t("na");
   return "?";
 }
 
@@ -488,12 +728,12 @@ function renderStoreTags(stores) {
   if (!stores.length) return '<span class="placeholder">—</span>';
   return `<div class="store-tags">${stores
     .map((store) => {
-      const when = store.available_when ? ` · ${store.available_when}` : "";
-      const label = `<strong>${store.store_name}</strong>${when}`;
+      const when = store.available_when ? ` · ${localizeAppleText(store.available_when)}` : "";
+      const label = `<strong>${storeDisplayName(store.store_name)}</strong>${when}`;
       if (store.order_url) {
-        return `<a class="store-tag store-tag--link" href="${store.order_url}" target="_blank" rel="noopener noreferrer" title="Order this model on Apple HK">
+        return `<a class="store-tag store-tag--link" href="${store.order_url}" target="_blank" rel="noopener noreferrer" title="${t("orderTitle")}">
           ${label}
-          <span class="store-tag__action">Order</span>
+          <span class="store-tag__action">${t("order")}</span>
         </a>`;
       }
       if (store.store_url) {
@@ -506,7 +746,7 @@ function renderStoreTags(stores) {
 
 function renderModels(models) {
   if (!models.length) {
-    els.modelsList.innerHTML = '<p class="placeholder">No variants match the current filters.</p>';
+    els.modelsList.innerHTML = `<p class="placeholder">${t("noMatch")}</p>`;
     return;
   }
 
@@ -516,17 +756,22 @@ function renderModels(models) {
       const rows = model.variants
         .map((variant) => {
           const rowClass = variant.pickup_status === "available" ? "row--available" : "";
+          const displayLabel = variantDisplayLabel(variant.label);
           const variantLabel = variant.order_url
-            ? `<a class="variant-link" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">${variant.label}</a>`
-            : variant.label;
+            ? `<a class="variant-link" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">${displayLabel}</a>`
+            : displayLabel;
+          const pickupWhen =
+            variant.pickup_status === "available"
+              ? localizeAppleText(variant.pickup_when || variant.pickup_quote || "—")
+              : "—";
           return `
             <tr class="${rowClass}">
               <td>${variantLabel}</td>
               <td><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
-              <td>${variant.pickup_status === "available" ? variant.pickup_when || variant.pickup_quote || "—" : "—"}</td>
+              <td>${pickupWhen}</td>
               <td>${renderStoreTags(variant.pickup_stores || [])}</td>
               <td><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
-              <td class="col-date">${variant.delivery_date}</td>
+              <td class="col-date">${localizeAppleText(variant.delivery_date)}</td>
             </tr>
           `;
         })
@@ -537,20 +782,24 @@ function renderModels(models) {
           <div class="model-panel__head">
             <div>
               <div class="model-panel__title">${model.name}</div>
-              <div class="model-panel__meta">${model.summary.variant_count} variants · ${model.summary.pickup_available} pickup · ${model.summary.delivery_available} delivery</div>
+              <div class="model-panel__meta">${t("meta", {
+                variants: model.summary.variant_count,
+                pickup: model.summary.pickup_available,
+                delivery: model.summary.delivery_available,
+              })}</div>
             </div>
-            ${inStock ? '<span class="badge badge--available">In stock</span>' : '<span class="badge badge--unavailable">No pickup</span>'}
+            ${inStock ? `<span class="badge badge--available">${t("inStock")}</span>` : `<span class="badge badge--unavailable">${t("noPickup")}</span>`}
           </div>
           <div class="table-wrap">
             <table class="availability-table">
               <thead>
                 <tr>
-                  <th>Variant</th>
-                  <th>Pickup</th>
-                  <th>Can pick up</th>
-                  <th>Stores</th>
-                  <th>Delivery</th>
-                  <th>Ship date</th>
+                  <th>${t("variant")}</th>
+                  <th>${t("pickup")}</th>
+                  <th>${t("canPickUp")}</th>
+                  <th>${t("stores")}</th>
+                  <th>${t("delivery")}</th>
+                  <th>${t("shipDate")}</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
@@ -595,9 +844,13 @@ function maybeNotifyPickup(models) {
 
   available.forEach((item) => {
     if (state.previousPickupAvailable.has(item.key)) return;
-    const whenText = item.availableWhen ? ` — pick up ${item.availableWhen}` : "";
-    new Notification(`${item.modelName} in stock (HK)`, {
-      body: `${item.label} at ${item.storeName}${whenText}`,
+    const whenText = item.availableWhen ? t("notifyWhen", { when: localizeAppleText(item.availableWhen) }) : "";
+    new Notification(t("notifyTitle", { model: item.modelName }), {
+      body: t("notifyBody", {
+        label: variantDisplayLabel(item.label),
+        store: storeDisplayName(item.storeName),
+        when: whenText,
+      }),
     });
   });
 
@@ -606,22 +859,29 @@ function maybeNotifyPickup(models) {
 
 function applySnapshot(data, sourceLabel = "snapshot") {
   state.snapshot = data;
+  state.sourceLabel = sourceLabel;
   const models = filterModels(data.models || []);
   const pickupSlots = models.reduce((sum, model) => sum + model.summary.pickup_available, 0);
   const variantCount = models.reduce((sum, model) => sum + model.summary.variant_count, 0);
+  const sourceText = sourceLabel === "live" ? t("live") : t("snapshot");
 
   els.modelsInStock.textContent = String(models.filter((m) => m.summary.pickup_available > 0).length);
   els.pickupAvailable.textContent = String(pickupSlots);
   els.variantCount.textContent = String(variantCount);
-  els.lastChecked.textContent = data.checked_at ? new Date(data.checked_at).toLocaleString() : "—";
-  els.modelsMeta.textContent = `${data.summary?.stores_checked ?? 0} stores · ${sourceLabel}`;
+  els.lastChecked.textContent = data.checked_at
+    ? new Date(data.checked_at).toLocaleString(localeTag())
+    : "—";
+  els.modelsMeta.textContent = t("storesMeta", {
+    count: data.summary?.stores_checked ?? 0,
+    source: sourceText,
+  });
 
   if (data.errors?.length) {
     els.errorBox.classList.remove("hidden");
     const reasons = [...new Set(data.errors.map((err) => err.reason))];
     const rateLimited = reasons.some((reason) => /429/.test(reason));
     els.errorBox.innerHTML = rateLimited
-      ? "<div>Live Apple check was rate-limited. Kept last known stock for failed requests.</div>"
+      ? `<div>${t("rateLimited")}</div>`
       : reasons.map((reason) => `<div>${reason}</div>`).join("");
   } else {
     els.errorBox.classList.add("hidden");
@@ -648,7 +908,7 @@ async function loadSnapshotFallback() {
       lastError = error;
     }
   }
-  throw lastError || new Error("Could not load stock snapshot");
+  throw lastError || new Error(t("snapshotMissing"));
 }
 
 async function runLiveCheck() {
@@ -709,37 +969,37 @@ async function runLiveCheck() {
 }
 
 async function runCheck() {
-  setStatus("loading", "Checking Apple HK…");
+  setStatusMode("loading", "checking");
   els.checkBtn.disabled = true;
   try {
     try {
       const live = await runLiveCheck();
       applySnapshot(live, "live");
-      setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching (live)" : "Ready");
+      setStatusMode(state.watching ? "watching" : "idle", state.watching ? "watchingLive" : "ready");
       return;
     } catch (liveError) {
       try {
         await loadSnapshotFallback();
         els.errorBox.classList.remove("hidden");
         els.errorBox.textContent = /429/.test(String(liveError.message))
-          ? "Live Apple check was rate-limited. Showing latest GitHub snapshot."
-          : `Live Apple check blocked here (${liveError.message}). Showing latest GitHub snapshot.`;
-        setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching" : "Ready");
+          ? t("rateLimited")
+          : t("liveBlocked", { error: liveError.message });
+        setStatusMode(state.watching ? "watching" : "idle", state.watching ? "watching" : "ready");
         return;
       } catch (_snapshotError) {
         const embedded = readEmbeddedJson("embedded-stock");
         if (embedded) {
           applySnapshot(embedded, "snapshot");
           els.errorBox.classList.remove("hidden");
-          els.errorBox.textContent = `Live refresh is blocked on this preview page. Pull to reload for a newer snapshot. (${liveError.message})`;
-          setStatus("idle", "Snapshot");
+          els.errorBox.textContent = t("liveBlockedPreview", { error: liveError.message });
+          setStatusMode("idle", "ready");
           return;
         }
         throw liveError;
       }
     }
   } catch (error) {
-    setStatus("error", "Check failed");
+    setStatusMode("error", "checkFailed");
     els.errorBox.classList.remove("hidden");
     els.errorBox.textContent = error.message;
   } finally {
@@ -753,21 +1013,21 @@ function stopWatching() {
     clearInterval(state.watchTimer);
     state.watchTimer = null;
   }
-  els.watchBtn.textContent = "Watch";
   els.watchBtn.classList.remove("is-active");
-  setStatus("idle", "Ready");
+  updateActionButtons();
+  setStatusMode("idle", "ready");
 }
 
 async function runWatchTick() {
   if (!state.watching) return;
-  setStatus("loading", "Refreshing snapshot…");
+  setStatusMode("loading", "refreshingSnapshot");
   try {
     await loadSnapshotFallback();
-    setStatus("watching", "Watching");
+    setStatusMode("watching", "watching");
   } catch (error) {
-    setStatus("watching", "Watching");
+    setStatusMode("watching", "watching");
     els.errorBox.classList.remove("hidden");
-    els.errorBox.textContent = `Snapshot refresh failed (${error.message}).`;
+    els.errorBox.textContent = t("snapshotFailed", { error: error.message });
   }
 }
 
@@ -775,16 +1035,18 @@ function startWatching() {
   const intervalMs = Math.max(Number(els.intervalRange.value), 30) * 1000;
   state.watching = true;
   state.seedNotificationBaseline = true;
-  els.watchBtn.textContent = "Stop";
   els.watchBtn.classList.add("is-active");
-  setStatus("watching", "Watching");
+  updateActionButtons();
+  setStatusMode("watching", "watching");
   runCheck();
   state.watchTimer = setInterval(runWatchTick, intervalMs);
 }
 
-function renderCatalogFilters() {
+function renderCatalogFilters(selectAllModels = false) {
   const { storages, colors } = collectStoragesAndColors(state.catalog);
-  catalogModels(state.catalog).forEach((model) => state.selectedModels.add(model.id));
+  if (selectAllModels) {
+    catalogModels(state.catalog).forEach((model) => state.selectedModels.add(model.id));
+  }
   renderChips(
     els.modelChips,
     catalogModels(state.catalog),
@@ -793,13 +1055,13 @@ function renderCatalogFilters() {
     (model) => model.id
   );
   renderChips(els.storageChips, storages, state.selectedStorage, formatStorageLabel);
-  renderChips(els.colorChips, colors, state.selectedColors);
+  renderChips(els.colorChips, colors, state.selectedColors, colorLabel);
 }
 
 function loadCatalog() {
   state.catalog = readEmbeddedJson("embedded-catalog");
   if (!state.catalog) throw new Error("Embedded catalog missing");
-  renderCatalogFilters();
+  renderCatalogFilters(true);
 }
 
 els.intervalRange.addEventListener("input", () => {
@@ -818,25 +1080,30 @@ els.watchBtn.addEventListener("click", () => {
 
 els.notifyBtn.addEventListener("click", async () => {
   if (!("Notification" in window)) {
-    alert("Notifications are not supported in this browser.");
+    alert(t("notifyUnsupported"));
     return;
   }
   const permission = await Notification.requestPermission();
-  els.notifyBtn.textContent = permission === "granted" ? "On" : "Off";
+  els.notifyBtn.textContent = permission === "granted" ? t("notifyOn") : t("notifyOff");
 });
 
+if (els.langZh) els.langZh.addEventListener("click", () => setLang("zh"));
+if (els.langEn) els.langEn.addEventListener("click", () => setLang("en"));
+
 try {
-  setStatus("loading", "Loading snapshot…");
+  state.lang = readSavedLang();
+  applyStaticCopy();
+  setStatusMode("loading", "loadingSnapshot");
   loadCatalog();
   const embedded = readEmbeddedJson("embedded-stock");
   if (embedded) {
     applySnapshot(embedded, "snapshot");
-    setStatus("idle", "Ready");
+    setStatusMode("idle", "ready");
   } else {
-    setStatus("idle", "Ready — tap Check");
+    setStatusMode("idle", "readyTap");
   }
 } catch (error) {
-  setStatus("error", "Load failed");
+  setStatusMode("error", "checkFailed");
   els.errorBox.classList.remove("hidden");
   els.errorBox.textContent = error.message;
 }
