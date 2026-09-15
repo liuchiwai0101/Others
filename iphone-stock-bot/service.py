@@ -30,12 +30,17 @@ SCREEN_SIZE = {
 
 def order_url_for(part_number: str, model_id: str | None = None, label: str | None = None) -> str:
     """Build Apple HK buy URL with No trade-in + No AppleCare preselected."""
-    params = {
-        "product": part_number,
-        "purchaseOption": "fullPrice",
-        "tradeInSelection": "noTradeIn",
-        "acpart": "none",
-    }
+    # igt=1 + tradeInType select "No trade-in". appleCareType / acpart select
+    # "No AppleCare+ coverage". Keep both names Apple's buy-flow JS checks.
+    params = [
+        ("product", part_number),
+        ("purchaseOption", "fullPrice"),
+        ("tradeInSelection", "noTradeIn"),
+        ("tradeInType", "noTradeIn"),
+        ("igt", "1"),
+        ("appleCareType", "noapplecare"),
+        ("acpart", "none"),
+    ]
     query = urllib.parse.urlencode(params)
 
     screen = SCREEN_SIZE.get(model_id or "")

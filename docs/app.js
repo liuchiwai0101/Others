@@ -129,12 +129,15 @@ function renderChips(container, values, selectedSet, labelFn = (v) => v, keyFn =
 }
 
 function orderUrlFor(partNumber, modelId, label) {
-  const params = new URLSearchParams({
-    product: partNumber,
-    purchaseOption: "fullPrice",
-    tradeInSelection: "noTradeIn",
-    acpart: "none",
-  });
+  const params = new URLSearchParams([
+    ["product", partNumber],
+    ["purchaseOption", "fullPrice"],
+    ["tradeInSelection", "noTradeIn"],
+    ["tradeInType", "noTradeIn"],
+    ["igt", "1"],
+    ["appleCareType", "noapplecare"],
+    ["acpart", "none"],
+  ]);
   const screen = SCREEN_SIZE[modelId];
   if (screen && label && label.includes(" ")) {
     const [storage, ...colorParts] = label.split(" ");
