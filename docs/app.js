@@ -142,12 +142,12 @@ const COLOR_ZH = {
   "Night Sky": "夜空色",
 };
 const STORE_ZH = {
-  "ifc mall": "ifc mall（中環）",
-  "Canton Road": "廣東道（尖沙咀）",
+  "ifc mall": "ifc 中環",
+  "Canton Road": "廣東道",
   "Causeway Bay": "銅鑼灣",
-  "Festival Walk": "又一城（九龍塘）",
-  "apm Hong Kong": "apm（觀塘）",
-  "New Town Plaza": "新城市廣場（沙田）",
+  "Festival Walk": "又一城",
+  "apm Hong Kong": "apm 觀塘",
+  "New Town Plaza": "新城市廣場",
 };
 
 const state = {
@@ -728,8 +728,10 @@ function renderStoreTags(stores) {
   if (!stores.length) return '<span class="placeholder">—</span>';
   return `<div class="store-tags">${stores
     .map((store) => {
-      const when = store.available_when ? ` · ${localizeAppleText(store.available_when)}` : "";
-      const label = `<strong>${storeDisplayName(store.store_name)}</strong>${when}`;
+      const when = store.available_when
+        ? `<span class="store-tag__when">${localizeAppleText(store.available_when)}</span>`
+        : "";
+      const label = `<span class="store-tag__name"><strong>${storeDisplayName(store.store_name)}</strong>${when}</span>`;
       if (store.order_url) {
         return `<a class="store-tag store-tag--link" href="${store.order_url}" target="_blank" rel="noopener noreferrer" title="${t("orderTitle")}">
           ${label}
@@ -766,11 +768,11 @@ function renderModels(models) {
               : "—";
           return `
             <tr class="${rowClass}">
-              <td>${variantLabel}</td>
-              <td><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
-              <td>${pickupWhen}</td>
-              <td>${renderStoreTags(variant.pickup_stores || [])}</td>
-              <td><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
+              <td class="col-variant">${variantLabel}</td>
+              <td class="col-pickup"><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
+              <td class="col-when">${pickupWhen}</td>
+              <td class="col-stores">${renderStoreTags(variant.pickup_stores || [])}</td>
+              <td class="col-delivery"><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
               <td class="col-date">${localizeAppleText(variant.delivery_date)}</td>
             </tr>
           `;
@@ -794,12 +796,12 @@ function renderModels(models) {
             <table class="availability-table">
               <thead>
                 <tr>
-                  <th>${t("variant")}</th>
-                  <th>${t("pickup")}</th>
-                  <th>${t("canPickUp")}</th>
-                  <th>${t("stores")}</th>
-                  <th>${t("delivery")}</th>
-                  <th>${t("shipDate")}</th>
+                  <th class="col-variant">${t("variant")}</th>
+                  <th class="col-pickup">${t("pickup")}</th>
+                  <th class="col-when">${t("canPickUp")}</th>
+                  <th class="col-stores">${t("stores")}</th>
+                  <th class="col-delivery">${t("delivery")}</th>
+                  <th class="col-date">${t("shipDate")}</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
