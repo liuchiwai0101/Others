@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-09-15T10:27:34.076015+00:00",
+  "checked_at": "2026-09-15T12:48:01.040287+00:00",
   "part_numbers": [
     "MK2D4ZA/A",
     "MK2E4ZA/A",
@@ -343,15 +343,15 @@
           "label": "256GB Black",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
           "pickup_status": "available",
-          "pickup_quote": "Available Fri 18 Sept",
-          "pickup_when": "Fri 18 Sept",
+          "pickup_quote": "Available Sat 19 Sept",
+          "pickup_when": "Sat 19 Sept",
           "pickup_stores": [
             {
               "store_name": "ifc mall",
               "store_number": "R428",
               "city": "Central",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
+              "quote": "Available Sat 19 Sept",
+              "available_when": "Sat 19 Sept",
               "store_url": "https://www.apple.com/hk/retail/ifcmall/",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             },
@@ -368,8 +368,8 @@
               "store_name": "Causeway Bay",
               "store_number": "R409",
               "city": "Causeway Bay",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
+              "quote": "Available Sat 19 Sept",
+              "available_when": "Sat 19 Sept",
               "store_url": "https://www.apple.com/hk/retail/causewaybay",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             },
@@ -377,9 +377,18 @@
               "store_name": "Festival Walk",
               "store_number": "R485",
               "city": "Kowloon Tong",
+              "quote": "Available Sat 19 Sept",
+              "available_when": "Sat 19 Sept",
+              "store_url": "https://www.apple.com/hk/retail/festivalwalk",
+              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
+            },
+            {
+              "store_name": "apm Hong Kong",
+              "store_number": "R673",
+              "city": "Kwun Tong",
               "quote": "Available Fri 18 Sept",
               "available_when": "Fri 18 Sept",
-              "store_url": "https://www.apple.com/hk/retail/festivalwalk",
+              "store_url": "https://www.apple.com/hk/retail/apmhongkong",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             }
           ],
@@ -391,15 +400,15 @@
           "label": "256GB Silver",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-silver?product=MJRQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
           "pickup_status": "available",
-          "pickup_quote": "Available Fri 18 Sept",
-          "pickup_when": "Fri 18 Sept",
+          "pickup_quote": "Available Sat 19 Sept",
+          "pickup_when": "Sat 19 Sept",
           "pickup_stores": [
             {
               "store_name": "ifc mall",
               "store_number": "R428",
               "city": "Central",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
+              "quote": "Available Sat 19 Sept",
+              "available_when": "Sat 19 Sept",
               "store_url": "https://www.apple.com/hk/retail/ifcmall/",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-silver?product=MJRQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             },
@@ -416,18 +425,9 @@
               "store_name": "Causeway Bay",
               "store_number": "R409",
               "city": "Causeway Bay",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
+              "quote": "Available Sat 19 Sept",
+              "available_when": "Sat 19 Sept",
               "store_url": "https://www.apple.com/hk/retail/causewaybay",
-              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-silver?product=MJRQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
-            },
-            {
-              "store_name": "Festival Walk",
-              "store_number": "R485",
-              "city": "Kowloon Tong",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
-              "store_url": "https://www.apple.com/hk/retail/festivalwalk",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-silver?product=MJRQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             }
           ],
@@ -439,15 +439,15 @@
           "label": "256GB Burgundy",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
           "pickup_status": "available",
-          "pickup_quote": "Available Fri 18 Sept",
-          "pickup_when": "Fri 18 Sept",
+          "pickup_quote": "Available Sat 19 Sept",
+          "pickup_when": "Sat 19 Sept",
           "pickup_stores": [
             {
               "store_name": "ifc mall",
               "store_number": "R428",
               "city": "Central",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
+              "quote": "Available Sat 19 Sept",
+              "available_when": "Sat 19 Sept",
               "store_url": "https://www.apple.com/hk/retail/ifcmall/",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             },
@@ -464,9 +464,18 @@
               "store_name": "Causeway Bay",
               "store_number": "R409",
               "city": "Causeway Bay",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
+              "quote": "Available Sat 19 Sept",
+              "available_when": "Sat 19 Sept",
               "store_url": "https://www.apple.com/hk/retail/causewaybay",
+              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
+            },
+            {
+              "store_name": "Festival Walk",
+              "store_number": "R485",
+              "city": "Kowloon Tong",
+              "quote": "Available Sat 19 Sept",
+              "available_when": "Sat 19 Sept",
+              "store_url": "https://www.apple.com/hk/retail/festivalwalk",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             },
             {
@@ -510,15 +519,15 @@
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-silver?product=MJRV4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
           "pickup_status": "available",
           "pickup_quote": "Currently unavailable",
-          "pickup_when": "Fri 18 Sept",
+          "pickup_when": "Sat 19 Sept",
           "pickup_stores": [
             {
-              "store_name": "apm Hong Kong",
-              "store_number": "R673",
-              "city": "Kwun Tong",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
-              "store_url": "https://www.apple.com/hk/retail/apmhongkong",
+              "store_name": "Causeway Bay",
+              "store_number": "R409",
+              "city": "Causeway Bay",
+              "quote": "Available Sat 19 Sept",
+              "available_when": "Sat 19 Sept",
+              "store_url": "https://www.apple.com/hk/retail/causewaybay",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-silver?product=MJRV4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             }
           ],
@@ -642,7 +651,7 @@
   "summary": {
     "model_count": 3,
     "variant_count": 40,
-    "pickup_available": 13,
+    "pickup_available": 14,
     "pickup_checked": 40,
     "delivery_available": 32,
     "delivery_checked": 40,
