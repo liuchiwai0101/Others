@@ -13,8 +13,6 @@ const els = {
   modelChips: document.getElementById("modelChips"),
   storageChips: document.getElementById("storageChips"),
   colorChips: document.getElementById("colorChips"),
-  checkPickup: document.getElementById("checkPickup"),
-  checkDelivery: document.getElementById("checkDelivery"),
   intervalRange: document.getElementById("intervalRange"),
   intervalLabel: document.getElementById("intervalLabel"),
   checkBtn: document.getElementById("checkBtn"),
@@ -240,7 +238,6 @@ function collectFilteredPickupKeys(models) {
 
 function maybeNotifyPickup(models) {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
-  if (!els.checkPickup.checked) return;
 
   const available = collectFilteredPickupKeys(models);
   const availableKeys = new Set(available.map((item) => item.key));
@@ -354,9 +351,6 @@ els.intervalRange.addEventListener("input", () => {
     startWatching();
   }
 });
-
-els.checkPickup.addEventListener("change", onFiltersChanged);
-els.checkDelivery.addEventListener("change", onFiltersChanged);
 
 els.checkBtn.addEventListener("click", runCheck);
 els.watchBtn.addEventListener("click", () => {

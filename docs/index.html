@@ -193,26 +193,6 @@ body {
   border-color: var(--accent);
 }
 
-.field--toggles {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  font-size: 0.78rem;
-  color: var(--muted);
-}
-
-.toggle input {
-  margin: 0;
-}
-
 .actions {
   display: grid;
   gap: 10px;
@@ -504,17 +484,6 @@ body {
           <div class="chip-group" id="colorChips"></div>
         </fieldset>
 
-        <fieldset class="field field--toggles">
-          <label class="toggle">
-            <input type="checkbox" id="checkPickup" checked>
-            <span>Pickup</span>
-          </label>
-          <label class="toggle">
-            <input type="checkbox" id="checkDelivery" checked>
-            <span>Delivery</span>
-          </label>
-        </fieldset>
-
         <label class="field field--compact">
           <span>Refresh <strong id="intervalLabel">30s</strong></span>
           <input type="range" id="intervalRange" min="15" max="120" step="5" value="30">
@@ -596,8 +565,6 @@ const els = {
   modelChips: document.getElementById("modelChips"),
   storageChips: document.getElementById("storageChips"),
   colorChips: document.getElementById("colorChips"),
-  checkPickup: document.getElementById("checkPickup"),
-  checkDelivery: document.getElementById("checkDelivery"),
   intervalRange: document.getElementById("intervalRange"),
   intervalLabel: document.getElementById("intervalLabel"),
   checkBtn: document.getElementById("checkBtn"),
@@ -1097,7 +1064,6 @@ function collectFilteredPickupKeys(models) {
 
 function maybeNotifyPickup(models) {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
-  if (!els.checkPickup.checked) return;
 
   const available = collectFilteredPickupKeys(models);
   const availableKeys = new Set(available.map((item) => item.key));
@@ -1295,8 +1261,6 @@ els.intervalRange.addEventListener("input", () => {
   }
 });
 
-els.checkPickup.addEventListener("change", onFiltersChanged);
-els.checkDelivery.addEventListener("change", onFiltersChanged);
 els.checkBtn.addEventListener("click", runCheck);
 els.watchBtn.addEventListener("click", () => {
   if (state.watching) stopWatching();

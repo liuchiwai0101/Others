@@ -186,26 +186,6 @@ body {
   border-color: var(--accent);
 }
 
-.field--toggles {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  font-size: 0.78rem;
-  color: var(--muted);
-}
-
-.toggle input {
-  margin: 0;
-}
-
 .actions {
   display: grid;
   gap: 10px;
