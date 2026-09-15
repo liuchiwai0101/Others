@@ -1,0 +1,18 @@
+{
+  "location": "Central",
+  "store_number": null,
+  "poll_interval_seconds": 30,
+  "models": "all",
+  "part_numbers": "all",
+  "filters": {
+    "storage_gb": [],
+    "colors": []
+  },
+  "check_pickup": true,
+  "check_online_delivery": true,
+  "notifications": {
+    "webhook_url": null,
+    "notify_on_available_only": true,
+    "desktop_alert": false
+  }
+}

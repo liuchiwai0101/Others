@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>iPhone 香港庫存</title>
+  <style>
+/*INLINE_CSS*/
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header__brand">
+        <span class="header__badge">HK</span>
+        <div>
+          <h1 data-i18n="title">iPhone 香港庫存</h1>
+          <p class="header__subtitle" data-i18n="subtitle">Duo、18 Pro 及 18 Pro Max · Apple Store 香港 · 取貨及送貨</p>
+        </div>
+      </div>
+      <div class="header__tools">
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang="zh" id="langZh">中</button>
+          <button type="button" class="lang-btn" data-lang="en" id="langEn">EN</button>
+        </div>
+        <div class="header__status" id="statusBar">
+          <span class="status-dot status-dot--loading" id="statusDot"></span>
+          <span id="statusText">載入中…</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel panel--controls">
+        <h2 data-i18n="filters">篩選</h2>
+
+        <fieldset class="field field--compact">
+          <legend data-i18n="models">型號</legend>
+          <div class="chip-group" id="modelChips"></div>
+        </fieldset>
+
+        <fieldset class="field field--compact">
+          <legend data-i18n="storage">容量</legend>
+          <div class="chip-group" id="storageChips"></div>
+        </fieldset>
+
+        <fieldset class="field field--compact">
+          <legend data-i18n="colour">顏色</legend>
+          <div class="chip-group" id="colorChips"></div>
+        </fieldset>
+
+        <label class="field field--compact">
+          <span><span data-i18n="refresh">更新</span> <strong id="intervalLabel">30s</strong></span>
+          <input type="range" id="intervalRange" min="15" max="120" step="5" value="30">
+        </label>
+
+        <div class="actions actions--compact">
+          <button class="btn btn--primary" id="checkBtn" type="button" data-i18n="check">查詢</button>
+          <button class="btn btn--secondary" id="watchBtn" type="button">監察</button>
+          <button class="btn btn--ghost" id="notifyBtn" type="button">通知</button>
+        </div>
+      </aside>
+
+      <section class="panel panel--results">
+        <div class="summary" id="summaryCards">
+          <div class="summary-card">
+            <span class="summary-card__label" data-i18n="modelsInStock">有貨型號</span>
+            <span class="summary-card__value" id="modelsInStock">—</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__label" data-i18n="pickupSlots">取貨名額</span>
+            <span class="summary-card__value" id="pickupAvailable">—</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__label" data-i18n="variantsChecked">已查款式</span>
+            <span class="summary-card__value" id="variantCount">—</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__label" data-i18n="lastChecked">上次查詢</span>
+            <span class="summary-card__value summary-card__value--small" id="lastChecked">—</span>
+          </div>
+        </div>
+
+        <div class="errors hidden" id="errorBox"></div>
+
+        <section class="models-section">
+          <div class="section-head">
+            <h2 data-i18n="availability">供應情況</h2>
+            <span class="section-meta" id="modelsMeta"></span>
+          </div>
+          <div class="models-list" id="modelsList">
+            <p class="placeholder" data-i18n="loadingAvailability">正在載入 iPhone Duo、18 Pro 及 18 Pro Max 供應情況…</p>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script type="application/json" id="embedded-catalog">
+/*EMBEDDED_CATALOG*/
+  </script>
+  <script type="application/json" id="embedded-stock">
+/*EMBEDDED_STOCK*/
+  </script>
+  <script>
+/*INLINE_JS*/
+  </script>
+</body>
+</html>
