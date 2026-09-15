@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-09-15T06:16:47.980710+00:00",
+  "checked_at": "2026-09-15T06:17:17.868045+00:00",
   "part_numbers": [
     "MK2D4ZA/A",
     "MK2E4ZA/A",
@@ -461,15 +461,6 @@
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             },
             {
-              "store_name": "Festival Walk",
-              "store_number": "R485",
-              "city": "Kowloon Tong",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
-              "store_url": "https://www.apple.com/hk/retail/festivalwalk",
-              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
-            },
-            {
               "store_name": "apm Hong Kong",
               "store_number": "R673",
               "city": "Kwun Tong",
@@ -671,7 +662,7 @@
   "summary": {
     "model_count": 3,
     "variant_count": 40,
-    "pickup_available": 16,
+    "pickup_available": 15,
     "pickup_checked": 40,
     "delivery_available": 32,
     "delivery_checked": 40,
