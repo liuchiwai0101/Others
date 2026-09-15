@@ -1,4 +1,4 @@
-const BATCH_SIZE = 4;
+const BATCH_SIZE = 16;
 const LOCATION = "Central";
 const BUY_BASE = "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro";
 const APPLE_BASE = "https://www.apple.com/hk/shop";
@@ -180,7 +180,11 @@ function readEmbeddedJson(id) {
   }
 }
 
-async function fetchJson(url, timeoutMs = 12000) {
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchJson(url, timeoutMs = 15000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -190,7 +194,14 @@ async function fetchJson(url, timeoutMs = 12000) {
       signal: controller.signal,
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return await response.json();
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) return await response.json();
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch (_error) {
+      return { contents: text, data: { content: text } };
+    }
   } catch (error) {
     if (error && error.name === "AbortError") throw new Error("request timed out");
     throw error;
@@ -199,15 +210,43 @@ async function fetchJson(url, timeoutMs = 12000) {
   }
 }
 
-async function fetchAppleJson(appleUrl) {
-  const proxied = `https://r.jina.ai/${appleUrl}`;
-  const payload = await fetchJson(proxied);
+async function fetchJsonWithRetry(url, retries = 1, timeoutMs = 12000) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await fetchJson(url, timeoutMs);
+    } catch (error) {
+      lastError = error;
+      if (!/HTTP 429/i.test(String(error?.message || error)) || attempt === retries) break;
+      await sleep(2000 * (attempt + 1));
+    }
+  }
+  throw lastError || new Error("request failed");
+}
+
+function parseApplePayload(payload) {
+  if (typeof payload === "string") {
+    const start = payload.indexOf("{");
+    return JSON.parse(start >= 0 ? payload.slice(start) : payload);
+  }
   const content = payload?.data?.content;
   if (typeof content === "string" && content.trim()) {
-    return JSON.parse(content);
+    const trimmed = content.trim();
+    const start = trimmed.indexOf("{");
+    return JSON.parse(start >= 0 ? trimmed.slice(start) : trimmed);
+  }
+  if (typeof payload?.contents === "string" && payload.contents.trim()) {
+    const trimmed = payload.contents.trim();
+    const start = trimmed.indexOf("{");
+    return JSON.parse(start >= 0 ? trimmed.slice(start) : trimmed);
   }
   if (payload?.body) return payload;
   throw new Error("Unexpected proxy response");
+}
+
+async function fetchAppleJson(appleUrl) {
+  const payload = await fetchJsonWithRetry(`https://r.jina.ai/${appleUrl}`, 1, 12000);
+  return parseApplePayload(payload);
 }
 
 function pickupStatus(raw) {
@@ -356,24 +395,35 @@ function groupByModel(selected, pickupResults, deliveryResults) {
         store_url: entry.store_url,
         order_url: orderUrlFor(part, modelId, label),
       }));
+    const previous = previousVariant(part);
     const pickupStatusValue = availableStores.length
       ? "available"
-      : pickupEntries[0]?.status || "unknown";
+      : pickupEntries[0]?.status || previous?.pickup_status || "unknown";
+    const usedPreviousPickup = !pickupEntries.length && previous;
     const delivery = deliveryByPart[part];
-    const previous = previousVariant(part);
-    const deliveryStatus = delivery?.status || previous?.delivery_status || "unknown";
-    const deliveryDate = delivery?.delivery_date || previous?.delivery_date || "unknown";
+    const deliveryLooksLive =
+      delivery &&
+      ["available", "unavailable", "ineligible"].includes(delivery.status) &&
+      delivery.delivery_date &&
+      delivery.delivery_date !== "unknown";
+    const deliveryStatus = deliveryLooksLive
+      ? delivery.status
+      : previous?.delivery_status || delivery?.status || "unknown";
+    const deliveryDate = deliveryLooksLive
+      ? delivery.delivery_date
+      : previous?.delivery_date || delivery?.delivery_date || "unknown";
     const variant = {
       part_number: part,
       label,
       order_url: orderUrlFor(part, modelId, label),
       pickup_status: pickupStatusValue,
-      pickup_quote: pickupEntries[0]?.quote || "",
-      pickup_when:
-        pickupEntries.find((e) => e.status === "available" && e.available_when)?.available_when ||
-        pickupEntries[0]?.available_when ||
-        "",
-      pickup_stores: availableStores,
+      pickup_quote: usedPreviousPickup ? previous.pickup_quote || "" : pickupEntries[0]?.quote || "",
+      pickup_when: usedPreviousPickup
+        ? previous.pickup_when || ""
+        : pickupEntries.find((e) => e.status === "available" && e.available_when)?.available_when ||
+          pickupEntries[0]?.available_when ||
+          "",
+      pickup_stores: usedPreviousPickup ? previous.pickup_stores || [] : availableStores,
       delivery_status: deliveryStatus,
       delivery_date: deliveryDate,
     };
@@ -562,7 +612,11 @@ function applySnapshot(data, sourceLabel = "snapshot") {
 
   if (data.errors?.length) {
     els.errorBox.classList.remove("hidden");
-    els.errorBox.innerHTML = data.errors.map((err) => `<div>${err.part_number}: ${err.reason}</div>`).join("");
+    const reasons = [...new Set(data.errors.map((err) => err.reason))];
+    const rateLimited = reasons.some((reason) => /429/.test(reason));
+    els.errorBox.innerHTML = rateLimited
+      ? "<div>Live Apple check was rate-limited. Kept last known stock for failed requests.</div>"
+      : reasons.map((reason) => `<div>${reason}</div>`).join("");
   } else {
     els.errorBox.classList.add("hidden");
     els.errorBox.innerHTML = "";
@@ -601,37 +655,48 @@ async function runLiveCheck() {
   if (!partNumbers.length) {
     errors.push({ part_number: "*", reason: "no variants selected" });
   } else {
-    // Always fetch pickup and delivery so Ship date is never blanked by the checkboxes.
-    for (const batch of chunked(partNumbers)) {
+    const pickupBatches = chunked(partNumbers);
+    const deliveryBatches = chunked(partNumbers);
+    for (let index = 0; index < pickupBatches.length; index += 1) {
       try {
-        const { results, errors: batchErrors } = await checkPickup(batch);
+        const { results, errors: batchErrors } = await checkPickup(pickupBatches[index]);
         pickupResults.push(...results);
         errors.push(...batchErrors);
       } catch (error) {
         errors.push({ part_number: "*", reason: `pickup: ${error.message}` });
       }
+      if (index < pickupBatches.length - 1) await sleep(400);
     }
-    for (const batch of chunked(partNumbers)) {
+    if (pickupBatches.length) await sleep(400);
+    for (let index = 0; index < deliveryBatches.length; index += 1) {
       try {
-        const { results, errors: batchErrors } = await checkDelivery(batch);
+        const { results, errors: batchErrors } = await checkDelivery(deliveryBatches[index]);
         deliveryResults.push(...results);
         errors.push(...batchErrors);
       } catch (error) {
         errors.push({ part_number: "*", reason: `delivery: ${error.message}` });
       }
+      if (index < deliveryBatches.length - 1) await sleep(400);
     }
   }
 
   const models = groupByModel(selected, pickupResults, deliveryResults);
-  const pickupAvailable = pickupResults.filter((item) => item.status === "available").length;
+  if (!pickupResults.length && !deliveryResults.length && errors.length) {
+    throw new Error(errors[0].reason);
+  }
+  const pickupSlots = models.reduce((sum, model) => sum + model.summary.pickup_available, 0);
   return {
     checked_at: new Date().toISOString(),
     models,
     errors,
     summary: {
       variant_count: partNumbers.length,
-      pickup_available: pickupAvailable,
-      stores_checked: new Set(pickupResults.map((item) => item.store_number).filter(Boolean)).size,
+      pickup_available: pickupSlots,
+      stores_checked: new Set(
+        models.flatMap((model) =>
+          model.variants.flatMap((variant) => (variant.pickup_stores || []).map((store) => store.store_number))
+        ).filter(Boolean)
+      ).size,
       models_with_pickup: models.filter((model) => model.summary.pickup_available > 0).length,
     },
   };
@@ -650,7 +715,9 @@ async function runCheck() {
       try {
         await loadSnapshotFallback();
         els.errorBox.classList.remove("hidden");
-        els.errorBox.textContent = `Live Apple check blocked here (${liveError.message}). Showing latest GitHub snapshot.`;
+        els.errorBox.textContent = /429/.test(String(liveError.message))
+          ? "Live Apple check was rate-limited. Showing latest GitHub snapshot."
+          : `Live Apple check blocked here (${liveError.message}). Showing latest GitHub snapshot.`;
         setStatus(state.watching ? "watching" : "idle", state.watching ? "Watching" : "Ready");
         return;
       } catch (_snapshotError) {
@@ -685,15 +752,28 @@ function stopWatching() {
   setStatus("idle", "Ready");
 }
 
+async function runWatchTick() {
+  if (!state.watching) return;
+  setStatus("loading", "Refreshing snapshot…");
+  try {
+    await loadSnapshotFallback();
+    setStatus("watching", "Watching");
+  } catch (error) {
+    setStatus("watching", "Watching");
+    els.errorBox.classList.remove("hidden");
+    els.errorBox.textContent = `Snapshot refresh failed (${error.message}).`;
+  }
+}
+
 function startWatching() {
   const intervalMs = Math.max(Number(els.intervalRange.value), 30) * 1000;
   state.watching = true;
   state.seedNotificationBaseline = true;
   els.watchBtn.textContent = "Stop";
   els.watchBtn.classList.add("is-active");
-  setStatus("watching", "Watching (live)");
+  setStatus("watching", "Watching");
   runCheck();
-  state.watchTimer = setInterval(runCheck, intervalMs);
+  state.watchTimer = setInterval(runWatchTick, intervalMs);
 }
 
 function renderCatalogFilters() {
