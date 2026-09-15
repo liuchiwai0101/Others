@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-09-15T02:01:09.837166+00:00",
+  "checked_at": "2026-09-15T02:28:35.363869+00:00",
   "part_numbers": [
     "MJXN4ZA/A",
     "MJXP4ZA/A",
@@ -40,7 +40,7 @@
       "name": "iPhone 18 Pro Max",
       "summary": {
         "variant_count": 16,
-        "pickup_available": 2,
+        "pickup_available": 0,
         "delivery_available": 16
       },
       "variants": [
@@ -48,20 +48,10 @@
           "part_number": "MJXN4ZA/A",
           "label": "256GB Black",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-256gb-black?product=MJXN4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
-          "pickup_status": "available",
+          "pickup_status": "unavailable",
           "pickup_quote": "Currently unavailable",
-          "pickup_when": "Sun 20 Sept",
-          "pickup_stores": [
-            {
-              "store_name": "Canton Road",
-              "store_number": "R499",
-              "city": "Tsim Sha Tsui",
-              "quote": "Available Sun 20 Sept",
-              "available_when": "Sun 20 Sept",
-              "store_url": "https://www.apple.com/hk/retail/cantonroad",
-              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-256gb-black?product=MJXN4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
-            }
-          ],
+          "pickup_when": "Currently unavailable",
+          "pickup_stores": [],
           "delivery_status": "available",
           "delivery_date": "10/10/2026 – 17/10/2026"
         },
@@ -80,20 +70,10 @@
           "part_number": "MJXQ4ZA/A",
           "label": "256GB Burgundy",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-256gb-burgundy?product=MJXQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
-          "pickup_status": "available",
+          "pickup_status": "unavailable",
           "pickup_quote": "Currently unavailable",
-          "pickup_when": "Sun 20 Sept",
-          "pickup_stores": [
-            {
-              "store_name": "Canton Road",
-              "store_number": "R499",
-              "city": "Tsim Sha Tsui",
-              "quote": "Available Sun 20 Sept",
-              "available_when": "Sun 20 Sept",
-              "store_url": "https://www.apple.com/hk/retail/cantonroad",
-              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.9-inch-display-256gb-burgundy?product=MJXQ4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
-            }
-          ],
+          "pickup_when": "Currently unavailable",
+          "pickup_stores": [],
           "delivery_status": "available",
           "delivery_date": "10/10/2026 – 17/10/2026"
         },
@@ -247,7 +227,7 @@
       "name": "iPhone 18 Pro",
       "summary": {
         "variant_count": 16,
-        "pickup_available": 7,
+        "pickup_available": 3,
         "delivery_available": 16
       },
       "variants": [
@@ -347,12 +327,12 @@
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             },
             {
-              "store_name": "Festival Walk",
-              "store_number": "R485",
-              "city": "Kowloon Tong",
+              "store_name": "Causeway Bay",
+              "store_number": "R409",
+              "city": "Causeway Bay",
               "quote": "Available Sun 20 Sept",
               "available_when": "Sun 20 Sept",
-              "store_url": "https://www.apple.com/hk/retail/festivalwalk",
+              "store_url": "https://www.apple.com/hk/retail/causewaybay",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-burgundy?product=MJRR4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             }
           ],
@@ -396,20 +376,10 @@
           "part_number": "MJRW4ZA/A",
           "label": "512GB Burgundy",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-burgundy?product=MJRW4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
-          "pickup_status": "available",
+          "pickup_status": "unavailable",
           "pickup_quote": "Currently unavailable",
-          "pickup_when": "Sun 20 Sept",
-          "pickup_stores": [
-            {
-              "store_name": "Festival Walk",
-              "store_number": "R485",
-              "city": "Kowloon Tong",
-              "quote": "Available Sun 20 Sept",
-              "available_when": "Sun 20 Sept",
-              "store_url": "https://www.apple.com/hk/retail/festivalwalk",
-              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-512gb-burgundy?product=MJRW4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
-            }
-          ],
+          "pickup_when": "Currently unavailable",
+          "pickup_stores": [],
           "delivery_status": "available",
           "delivery_date": "30/09/2026 – 08/10/2026"
         },
@@ -472,20 +442,10 @@
           "part_number": "MJT34ZA/A",
           "label": "2TB Black",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-black?product=MJT34ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
-          "pickup_status": "available",
+          "pickup_status": "unavailable",
           "pickup_quote": "Currently unavailable",
-          "pickup_when": "Fri 18 Sept",
-          "pickup_stores": [
-            {
-              "store_name": "Canton Road",
-              "store_number": "R499",
-              "city": "Tsim Sha Tsui",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
-              "store_url": "https://www.apple.com/hk/retail/cantonroad",
-              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-black?product=MJT34ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
-            }
-          ],
+          "pickup_when": "Currently unavailable",
+          "pickup_stores": [],
           "delivery_status": "available",
           "delivery_date": "30/09/2026 – 08/10/2026"
         },
@@ -493,20 +453,10 @@
           "part_number": "MJT44ZA/A",
           "label": "2TB Silver",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-silver?product=MJT44ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
-          "pickup_status": "available",
+          "pickup_status": "unavailable",
           "pickup_quote": "Currently unavailable",
-          "pickup_when": "Fri 18 Sept",
-          "pickup_stores": [
-            {
-              "store_name": "Canton Road",
-              "store_number": "R499",
-              "city": "Tsim Sha Tsui",
-              "quote": "Available Fri 18 Sept",
-              "available_when": "Fri 18 Sept",
-              "store_url": "https://www.apple.com/hk/retail/cantonroad",
-              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-silver?product=MJT44ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
-            }
-          ],
+          "pickup_when": "Currently unavailable",
+          "pickup_stores": [],
           "delivery_status": "available",
           "delivery_date": "30/09/2026 – 08/10/2026"
         },
@@ -514,20 +464,10 @@
           "part_number": "MJT54ZA/A",
           "label": "2TB Burgundy",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-burgundy?product=MJT54ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
-          "pickup_status": "available",
-          "pickup_quote": "Available Sat 19 Sept",
-          "pickup_when": "Sat 19 Sept",
-          "pickup_stores": [
-            {
-              "store_name": "ifc mall",
-              "store_number": "R428",
-              "city": "Central",
-              "quote": "Available Sat 19 Sept",
-              "available_when": "Sat 19 Sept",
-              "store_url": "https://www.apple.com/hk/retail/ifcmall/",
-              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-2tb-burgundy?product=MJT54ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
-            }
-          ],
+          "pickup_status": "unavailable",
+          "pickup_quote": "Currently unavailable",
+          "pickup_when": "Currently unavailable",
+          "pickup_stores": [],
           "delivery_status": "available",
           "delivery_date": "30/09/2026 – 08/10/2026"
         },
@@ -549,12 +489,12 @@
   "summary": {
     "model_count": 2,
     "variant_count": 32,
-    "pickup_available": 14,
+    "pickup_available": 8,
     "pickup_checked": 32,
     "delivery_available": 32,
     "delivery_checked": 32,
     "stores_checked": 6,
-    "models_with_pickup": 2
+    "models_with_pickup": 1
   },
   "source": "github-actions"
 }
