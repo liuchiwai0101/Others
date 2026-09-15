@@ -274,16 +274,39 @@ async function checkDelivery(parts) {
   if (!parts.length) return { results: [], errors: [] };
   const payload = await fetchAppleJson(buildDeliveryUrl(parts));
   const deliveryMessage = (((payload.body || {}).content || {}).deliveryMessage) || {};
+
+  function partDataFor(partNumber) {
+    if (deliveryMessage[partNumber]) return deliveryMessage[partNumber];
+    const compact = partNumber.replace(/\//g, "");
+    for (const [key, value] of Object.entries(deliveryMessage)) {
+      if (typeof value !== "object" || !value) continue;
+      if (key === partNumber || key.replace(/\//g, "") === compact) return value;
+    }
+    return null;
+  }
+
+  function dateFrom(regular) {
+    const optionDate = regular.deliveryOptions?.[0]?.date;
+    if (optionDate) return optionDate;
+    const message = regular.deliveryOptionMessages?.[0]?.displayName || "";
+    if (message) return message.split("—")[0].trim();
+    const sticky = String(regular.stickyMessageSTH || "").replace(/<[^>]+>/g, " ");
+    const match = sticky.match(/\d{1,2}\/\d{1,2}\/\d{4}\s*[–-]\s*\d{1,2}\/\d{1,2}\/\d{4}/);
+    if (match) return match[0];
+    const quote = (regular.orderByDeliveryBy || "").trim();
+    if (quote && !quote.toLowerCase().startsWith("order today")) return quote;
+    return "unknown";
+  }
+
   const results = parts.map((partNumber) => {
-    const partData = deliveryMessage[partNumber];
+    const partData = partDataFor(partNumber);
     if (!partData) {
       return { part_number: partNumber, status: "unknown", delivery_date: "unknown" };
     }
     const regular = partData.regular || {};
-    const options = regular.deliveryOptions || [];
-    const dateText = options[0]?.date || regular.orderByDeliveryBy || "unknown";
+    const dateText = dateFrom(regular);
     const buyability = regular.buyability || {};
-    const isBuyable = buyability.isBuyable;
+    const isBuyable = buyability.isBuyable ?? regular.isBuyable;
     const inventory = buyability.inventory;
     let status = "unknown";
     if (isBuyable === true && (inventory == null || inventory > 0)) status = "available";
@@ -292,6 +315,14 @@ async function checkDelivery(parts) {
     return { part_number: partNumber, status, delivery_date: dateText };
   });
   return { results, errors: [] };
+}
+
+function previousVariant(partNumber) {
+  for (const model of state.snapshot?.models || []) {
+    const variant = model.variants.find((item) => item.part_number === partNumber);
+    if (variant) return variant;
+  }
+  return null;
 }
 
 function groupByModel(selected, pickupResults, deliveryResults) {
@@ -328,6 +359,9 @@ function groupByModel(selected, pickupResults, deliveryResults) {
       ? "available"
       : pickupEntries[0]?.status || "unknown";
     const delivery = deliveryByPart[part];
+    const previous = previousVariant(part);
+    const deliveryStatus = delivery?.status || previous?.delivery_status || "unknown";
+    const deliveryDate = delivery?.delivery_date || previous?.delivery_date || "unknown";
     const variant = {
       part_number: part,
       label,
@@ -339,8 +373,8 @@ function groupByModel(selected, pickupResults, deliveryResults) {
         pickupEntries[0]?.available_when ||
         "",
       pickup_stores: availableStores,
-      delivery_status: delivery?.status || "unknown",
-      delivery_date: delivery?.delivery_date || "unknown",
+      delivery_status: deliveryStatus,
+      delivery_date: deliveryDate,
     };
     const modelEntry = grouped[modelId];
     modelEntry.variants.push(variant);
@@ -567,28 +601,23 @@ async function runLiveCheck() {
   if (!partNumbers.length) {
     errors.push({ part_number: "*", reason: "no variants selected" });
   } else {
-    if (els.checkPickup.checked) {
-      for (const batch of chunked(partNumbers)) {
-        try {
-          const { results, errors: batchErrors } = await checkPickup(batch);
-          pickupResults.push(...results);
-          errors.push(...batchErrors);
-        } catch (error) {
-          errors.push({ part_number: "*", reason: `pickup: ${error.message}` });
-          throw error;
-        }
+    // Always fetch pickup and delivery so Ship date is never blanked by the checkboxes.
+    for (const batch of chunked(partNumbers)) {
+      try {
+        const { results, errors: batchErrors } = await checkPickup(batch);
+        pickupResults.push(...results);
+        errors.push(...batchErrors);
+      } catch (error) {
+        errors.push({ part_number: "*", reason: `pickup: ${error.message}` });
       }
     }
-    if (els.checkDelivery.checked) {
-      for (const batch of chunked(partNumbers)) {
-        try {
-          const { results, errors: batchErrors } = await checkDelivery(batch);
-          deliveryResults.push(...results);
-          errors.push(...batchErrors);
-        } catch (error) {
-          errors.push({ part_number: "*", reason: `delivery: ${error.message}` });
-          throw error;
-        }
+    for (const batch of chunked(partNumbers)) {
+      try {
+        const { results, errors: batchErrors } = await checkDelivery(batch);
+        deliveryResults.push(...results);
+        errors.push(...batchErrors);
+      } catch (error) {
+        errors.push({ part_number: "*", reason: `delivery: ${error.message}` });
       }
     }
   }

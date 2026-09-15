@@ -114,8 +114,8 @@ function buildRequestBody() {
     location: "Central",
     store_number: null,
     models: selectedModelsList(),
-    check_pickup: els.checkPickup.checked,
-    check_online_delivery: els.checkDelivery.checked,
+    check_pickup: true,
+    check_online_delivery: true,
     filters: {
       storage_gb: [...state.selectedStorage].map(Number),
       colors: [...state.selectedColors],

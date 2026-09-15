@@ -218,6 +218,10 @@ def check_delivery(part_numbers: list[str]) -> tuple[list[DeliveryResult], list[
         regular = part_data.get("regular") or {}
         options = regular.get("deliveryOptions") or []
         date_text = options[0].get("date") if options else regular.get("orderByDeliveryBy") or "unknown"
+        if date_text == "unknown" or str(date_text).lower().startswith("order today"):
+            messages = regular.get("deliveryOptionMessages") or []
+            if messages and messages[0].get("displayName"):
+                date_text = messages[0]["displayName"].split("—")[0].strip()
         buyability = regular.get("buyability") or {}
         is_buyable = buyability.get("isBuyable")
         inventory = buyability.get("inventory")
