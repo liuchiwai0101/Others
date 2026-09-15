@@ -23,12 +23,18 @@ PRODUCTS_FILE = ROOT / "products.json"
 API_BATCH_SIZE = 16
 BUY_BASE = "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro"
 SCREEN_SIZE = {
+    "duo": "7.6-inch-display",
     "18-pro": "6.3-inch-display",
     "18-pro-max": "6.9-inch-display",
 }
 
 
-def order_url_for(part_number: str, model_id: str | None = None, label: str | None = None) -> str:
+def order_url_for(
+    part_number: str,
+    model_id: str | None = None,
+    label: str | None = None,
+    catalog: dict[str, Any] | None = None,
+) -> str:
     """Build Apple HK buy URL with No trade-in + No AppleCare preselected."""
     # igt=1 + tradeInType select "No trade-in". appleCareType / acpart select
     # "No AppleCare+ coverage". Keep both names Apple's buy-flow JS checks.
@@ -43,11 +49,14 @@ def order_url_for(part_number: str, model_id: str | None = None, label: str | No
     ]
     query = urllib.parse.urlencode(params)
 
-    screen = SCREEN_SIZE.get(model_id or "")
+    model = ((catalog or {}).get("models") or {}).get(model_id or "") or {}
+    buy_base = model.get("buy_url") or BUY_BASE
+    screen = model.get("screen") or SCREEN_SIZE.get(model_id or "")
     if screen and label and " " in label:
         storage, color = label.split(" ", 1)
-        slug = f"{screen}-{storage.lower()}-{color.lower()}"
-        return f"{BUY_BASE}/{slug}?{query}"
+        color_slug = color.lower().replace(" ", "-")
+        slug = f"{screen}-{storage.lower()}-{color_slug}"
+        return f"{buy_base}/{slug}?{query}"
 
     # Fallback deep-link (params may be dropped on redirect).
     encoded = urllib.parse.quote(part_number, safe="/")
@@ -225,7 +234,9 @@ def _group_by_model(
                 "quote": entry.quote,
                 "available_when": entry.available_when,
                 "store_url": entry.store_url,
-                "order_url": order_url_for(part_number, model_id=model_id, label=meta["label"]),
+                "order_url": order_url_for(
+                    part_number, model_id=model_id, label=meta["label"], catalog=catalog
+                ),
             }
             for entry in pickup_entries
             if entry.status == StockStatus.AVAILABLE
@@ -247,7 +258,9 @@ def _group_by_model(
         variant = {
             "part_number": part_number,
             "label": meta["label"],
-            "order_url": order_url_for(part_number, model_id=model_id, label=meta["label"]),
+            "order_url": order_url_for(
+                part_number, model_id=model_id, label=meta["label"], catalog=catalog
+            ),
             "pickup_status": pickup_status,
             "pickup_quote": pickup_entries[0].quote if pickup_entries else "",
             "pickup_when": (

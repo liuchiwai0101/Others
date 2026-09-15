@@ -8,11 +8,27 @@
     "R673": "apm Hong Kong (Kwun Tong)",
     "R610": "New Town Plaza (Sha Tin)"
   },
-  "model_order": ["18-pro-max", "18-pro"],
+  "model_order": ["duo", "18-pro-max", "18-pro"],
   "models": {
+    "duo": {
+      "name": "iPhone Duo",
+      "buy_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-duo",
+      "screen": "7.6-inch-display",
+      "variants": {
+        "MK2D4ZA/A": "256GB Star White",
+        "MK2E4ZA/A": "256GB Night Sky",
+        "MK2F4ZA/A": "512GB Star White",
+        "MK2G4ZA/A": "512GB Night Sky",
+        "MK2H4ZA/A": "1TB Star White",
+        "MK2J4ZA/A": "1TB Night Sky",
+        "MK2K4ZA/A": "2TB Star White",
+        "MK2L4ZA/A": "2TB Night Sky"
+      }
+    },
     "18-pro-max": {
       "name": "iPhone 18 Pro Max",
       "buy_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro",
+      "screen": "6.9-inch-display",
       "variants": {
         "MJXN4ZA/A": "256GB Black",
         "MJXP4ZA/A": "256GB Silver",
@@ -35,6 +51,7 @@
     "18-pro": {
       "name": "iPhone 18 Pro",
       "buy_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro",
+      "screen": "6.3-inch-display",
       "variants": {
         "MJRP4ZA/A": "256GB Black",
         "MJRQ4ZA/A": "256GB Silver",

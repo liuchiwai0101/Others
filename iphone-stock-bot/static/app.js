@@ -261,7 +261,7 @@ function maybeNotifyPickup(models) {
 }
 
 async function runCheck() {
-  setStatus("loading", "Checking 18 Pro & Pro Max…");
+  setStatus("loading", "Checking Apple HK…");
   els.checkBtn.disabled = true;
 
   try {

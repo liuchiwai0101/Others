@@ -27,7 +27,7 @@ def _storage_to_gb(token: str) -> int:
 ROOT = Path(__file__).resolve().parent
 STATIC_DIR = ROOT / "static"
 
-app = FastAPI(title="iPhone 18 Pro HK Stock Checker", version="2.1.0")
+app = FastAPI(title="iPhone HK Stock Checker", version="2.2.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 

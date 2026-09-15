@@ -5,6 +5,7 @@ const APPLE_BASE = "https://www.apple.com/hk/shop";
 const REPO_RAW =
   "https://raw.githubusercontent.com/liuchiwai0101/Others/cursor/iphone-18-stock-bot-1629/docs";
 const SCREEN_SIZE = {
+  duo: "7.6-inch-display",
   "18-pro": "6.3-inch-display",
   "18-pro-max": "6.9-inch-display",
 };
@@ -138,11 +139,14 @@ function orderUrlFor(partNumber, modelId, label) {
     ["appleCareType", "noapplecare"],
     ["acpart", "none"],
   ]);
-  const screen = SCREEN_SIZE[modelId];
+  const model = state.catalog?.models?.[modelId] || {};
+  const buyBase = model.buy_url || BUY_BASE;
+  const screen = model.screen || SCREEN_SIZE[modelId];
   if (screen && label && label.includes(" ")) {
     const [storage, ...colorParts] = label.split(" ");
-    const slug = `${screen}-${storage.toLowerCase()}-${colorParts.join(" ").toLowerCase()}`;
-    return `${BUY_BASE}/${slug}?${params}`;
+    const colorSlug = colorParts.join(" ").toLowerCase().replace(/\s+/g, "-");
+    const slug = `${screen}-${storage.toLowerCase()}-${colorSlug}`;
+    return `${buyBase}/${slug}?${params}`;
   }
   return `https://www.apple.com/hk/shop/product/${encodeURIComponent(partNumber)}?${params}`;
 }
