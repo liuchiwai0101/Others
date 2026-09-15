@@ -330,9 +330,11 @@ async function checkDelivery(parts) {
   }
 
   function dateFrom(regular) {
-    const optionDate = regular.deliveryOptions?.[0]?.date;
-    if (optionDate) return optionDate;
     const message = regular.deliveryOptionMessages?.[0]?.displayName || "";
+    const optionDate = regular.deliveryOptions?.[0]?.date;
+    const isBuyable = regular.buyability?.isBuyable ?? regular.isBuyable;
+    if (isBuyable === false && message) return message.split("—")[0].trim();
+    if (optionDate && !String(optionDate).toLowerCase().startsWith("order today")) return optionDate;
     if (message) return message.split("—")[0].trim();
     const sticky = String(regular.stickyMessageSTH || "").replace(/<[^>]+>/g, " ");
     const match = sticky.match(/\d{1,2}\/\d{1,2}\/\d{4}\s*[–-]\s*\d{1,2}\/\d{1,2}\/\d{4}/);

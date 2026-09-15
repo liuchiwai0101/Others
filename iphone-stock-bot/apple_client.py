@@ -217,14 +217,22 @@ def check_delivery(part_numbers: list[str]) -> tuple[list[DeliveryResult], list[
 
         regular = part_data.get("regular") or {}
         options = regular.get("deliveryOptions") or []
-        date_text = options[0].get("date") if options else regular.get("orderByDeliveryBy") or "unknown"
-        if date_text == "unknown" or str(date_text).lower().startswith("order today"):
-            messages = regular.get("deliveryOptionMessages") or []
-            if messages and messages[0].get("displayName"):
-                date_text = messages[0]["displayName"].split("—")[0].strip()
+        messages = regular.get("deliveryOptionMessages") or []
+        message_name = (messages[0].get("displayName") if messages else "") or ""
+        option_date = options[0].get("date") if options else None
         buyability = regular.get("buyability") or {}
         is_buyable = buyability.get("isBuyable")
         inventory = buyability.get("inventory")
+
+        if is_buyable is False and message_name:
+            date_text = message_name.split("—")[0].strip()
+        elif option_date and not str(option_date).lower().startswith("order today"):
+            date_text = option_date
+        elif message_name:
+            date_text = message_name.split("—")[0].strip()
+        else:
+            quote = (regular.get("orderByDeliveryBy") or "").strip()
+            date_text = quote if quote and not quote.lower().startswith("order today") else "unknown"
 
         if is_buyable is True and (inventory is None or inventory > 0):
             status = StockStatus.AVAILABLE
