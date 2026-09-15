@@ -422,10 +422,10 @@ function badgeClass(status) {
 }
 
 function badgeLabel(status) {
-  if (status === "available") return "Available";
-  if (status === "unavailable") return "Unavailable";
-  if (status === "ineligible") return "Ineligible";
-  return "Unknown";
+  if (status === "available") return "Yes";
+  if (status === "unavailable") return "No";
+  if (status === "ineligible") return "N/A";
+  return "?";
 }
 
 function renderStoreTags(stores) {
@@ -470,7 +470,7 @@ function renderModels(models) {
               <td>${variant.pickup_status === "available" ? variant.pickup_when || variant.pickup_quote || "—" : "—"}</td>
               <td>${renderStoreTags(variant.pickup_stores || [])}</td>
               <td><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
-              <td>${variant.delivery_date}</td>
+              <td class="col-date">${variant.delivery_date}</td>
             </tr>
           `;
         })
