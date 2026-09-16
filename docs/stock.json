@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-09-16T09:37:27.040626+00:00",
+  "checked_at": "2026-09-16T10:00:41.260466+00:00",
   "part_numbers": [
     "MK2D4ZA/A",
     "MK2E4ZA/A",
@@ -334,7 +334,7 @@
       "name": "iPhone 18 Pro",
       "summary": {
         "variant_count": 16,
-        "pickup_available": 4,
+        "pickup_available": 3,
         "delivery_available": 16
       },
       "variants": [
@@ -386,8 +386,8 @@
               "store_name": "New Town Plaza",
               "store_number": "R610",
               "city": "Sha Tin",
-              "quote": "Available Sat 19 Sept",
-              "available_when": "Sat 19 Sept",
+              "quote": "Available Fri 18 Sept",
+              "available_when": "Fri 18 Sept",
               "store_url": "https://www.apple.com/hk/retail/newtownplaza",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&igt=1"
             }
@@ -536,20 +536,10 @@
           "part_number": "MJT14ZA/A",
           "label": "1TB Burgundy",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-1tb-burgundy?product=MJT14ZA%2FA&purchaseOption=fullPrice&igt=1",
-          "pickup_status": "available",
+          "pickup_status": "unavailable",
           "pickup_quote": "Currently unavailable",
-          "pickup_when": "Sat 19 Sept",
-          "pickup_stores": [
-            {
-              "store_name": "Causeway Bay",
-              "store_number": "R409",
-              "city": "Causeway Bay",
-              "quote": "Available Sat 19 Sept",
-              "available_when": "Sat 19 Sept",
-              "store_url": "https://www.apple.com/hk/retail/causewaybay",
-              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-1tb-burgundy?product=MJT14ZA%2FA&purchaseOption=fullPrice&igt=1"
-            }
-          ],
+          "pickup_when": "Currently unavailable",
+          "pickup_stores": [],
           "delivery_status": "available",
           "delivery_date": "02/10/2026 – 09/10/2026"
         },
@@ -615,7 +605,7 @@
   "summary": {
     "model_count": 3,
     "variant_count": 40,
-    "pickup_available": 10,
+    "pickup_available": 9,
     "pickup_checked": 40,
     "delivery_available": 32,
     "delivery_checked": 40,
