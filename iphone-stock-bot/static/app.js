@@ -14,9 +14,6 @@ const I18N = {
     notify: "通知",
     notifyOn: "已開",
     notifyOff: "已關",
-    modelsInStock: "有貨型號",
-    pickupSlots: "取貨名額",
-    variantsChecked: "已查款式",
     lastChecked: "上次查詢",
     availability: "供應情況",
     loadingAvailability: "正在載入 iPhone Duo、18 Pro 及 18 Pro Max 供應情況…",
@@ -74,9 +71,6 @@ const I18N = {
     notify: "Notify",
     notifyOn: "On",
     notifyOff: "Off",
-    modelsInStock: "Models in stock",
-    pickupSlots: "Pickup slots",
-    variantsChecked: "Variants checked",
     lastChecked: "Last checked",
     availability: "Availability",
     loadingAvailability: "Loading iPhone Duo, 18 Pro and 18 Pro Max availability…",
@@ -165,9 +159,6 @@ const els = {
   notifyBtn: document.getElementById("notifyBtn"),
   statusDot: document.getElementById("statusDot"),
   statusText: document.getElementById("statusText"),
-  modelsInStock: document.getElementById("modelsInStock"),
-  pickupAvailable: document.getElementById("pickupAvailable"),
-  variantCount: document.getElementById("variantCount"),
   lastChecked: document.getElementById("lastChecked"),
   errorBox: document.getElementById("errorBox"),
   modelsList: document.getElementById("modelsList"),
@@ -555,10 +546,12 @@ function maybeNotifyPickup(models) {
 
 function applyCheckData(data) {
   state.lastData = data;
-  els.modelsInStock.textContent = String(data.summary.models_with_pickup ?? 0);
-  els.pickupAvailable.textContent = String(data.summary.pickup_available ?? 0);
-  els.variantCount.textContent = String(data.summary.variant_count ?? 0);
-  els.lastChecked.textContent = data.checked_at ? new Date(data.checked_at).toLocaleString(localeTag()) : "—";
+  if (els.lastChecked) {
+    els.lastChecked.textContent = data.checked_at
+      ? new Date(data.checked_at).toLocaleString(localeTag(), { dateStyle: "short", timeStyle: "short" })
+      : "—";
+    els.lastChecked.dateTime = data.checked_at || "";
+  }
   els.modelsMeta.textContent = t("storesMeta", {
     count: data.summary.stores_checked ?? 0,
     source: t("live"),

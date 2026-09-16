@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>iPhone 香港庫存</title>
-  <link rel="stylesheet" href="/static/style.css?v=12">
+  <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
 <body>
   <div class="app">
@@ -20,6 +20,10 @@
         <div class="lang-toggle" role="group" aria-label="Language">
           <button type="button" class="lang-btn" data-lang="zh" id="langZh">中</button>
           <button type="button" class="lang-btn" data-lang="en" id="langEn">EN</button>
+        </div>
+        <div class="header__checked">
+          <span data-i18n="lastChecked">上次查詢</span>
+          <time id="lastChecked">—</time>
         </div>
         <div class="header__status" id="statusBar">
           <span class="status-dot status-dot--idle" id="statusDot"></span>
@@ -60,25 +64,6 @@
       </aside>
 
       <section class="panel panel--results">
-        <div class="summary" id="summaryCards">
-          <div class="summary-card">
-            <span class="summary-card__label" data-i18n="modelsInStock">有貨型號</span>
-            <span class="summary-card__value" id="modelsInStock">—</span>
-          </div>
-          <div class="summary-card">
-            <span class="summary-card__label" data-i18n="pickupSlots">取貨名額</span>
-            <span class="summary-card__value" id="pickupAvailable">—</span>
-          </div>
-          <div class="summary-card">
-            <span class="summary-card__label" data-i18n="variantsChecked">已查款式</span>
-            <span class="summary-card__value" id="variantCount">—</span>
-          </div>
-          <div class="summary-card">
-            <span class="summary-card__label" data-i18n="lastChecked">上次查詢</span>
-            <span class="summary-card__value summary-card__value--small" id="lastChecked">—</span>
-          </div>
-        </div>
-
         <div class="errors hidden" id="errorBox"></div>
 
         <section class="models-section">
@@ -94,6 +79,6 @@
     </main>
   </div>
 
-  <script src="/static/app.js?v=12"></script>
+  <script src="/static/app.js?v=13"></script>
 </body>
 </html>
