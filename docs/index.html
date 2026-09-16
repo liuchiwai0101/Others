@@ -609,7 +609,7 @@ body {
           <button class="btn btn--secondary" id="watchBtn" type="button">監察</button>
           <button class="btn btn--ghost" id="notifyBtn" type="button">通知</button>
         </div>
-        <button class="preselect-hint" id="preselectBtn" type="button" data-i18n="preselectHint">複製書籤：自動剔不換購／無 AppleCare+</button>
+        <button class="preselect-hint" id="preselectBtn" type="button" data-i18n="preselectHint">備用書籤（訂購頁沒自動剔選時用）</button>
       </aside>
 
       <section class="panel panel--results">
@@ -680,10 +680,10 @@ const I18N = {
     na: "不適用",
     unknown: "未知",
     order: "訂購",
-    orderTitle: "前往 Apple 香港訂購此型號（容量、顏色已選）",
+    orderTitle: "前往 Apple 香港訂購（容量、顏色已選；自動剔不換購／無 AppleCare+）",
     preselect: "預選",
-    preselectCopied: "已複製。加到 Safari 書籤，在 Apple 訂購頁點一次即可。",
-    preselectHint: "複製書籤：自動剔不換購／無 AppleCare+",
+    preselectCopied: "已複製。加到 Safari 書籤，若訂購頁沒有自動剔選再點一次。",
+    preselectHint: "備用書籤（訂購頁沒自動剔選時用）",
     meta: "{variants} 款 · {pickup} 取貨 · {delivery} 送貨",
     storesMeta: "{count} 間零售店 · {source}",
     live: "即時",
@@ -740,10 +740,10 @@ const I18N = {
     na: "N/A",
     unknown: "unknown",
     order: "Order",
-    orderTitle: "Order this model on Apple HK (storage and colour already selected)",
+    orderTitle: "Order on Apple HK (storage and colour selected; auto-tick No trade-in / No AppleCare+)",
     preselect: "Preselect",
-    preselectCopied: "Copied. Add it in Safari, then tap once on the Apple buy page.",
-    preselectHint: "Copy bookmark: auto-tick No trade-in / No AppleCare+",
+    preselectCopied: "Copied. Add it in Safari and tap once if Order did not auto-tick.",
+    preselectHint: "Backup bookmark if Order did not auto-tick",
     meta: "{variants} variants · {pickup} pickup · {delivery} delivery",
     storesMeta: "{count} stores · {source}",
     live: "live",
@@ -1040,10 +1040,64 @@ function renderChips(container, values, selectedSet, labelFn = (v) => v, keyFn =
   });
 }
 
-const APPLE_DEFAULTS_JS = `(function(){function pick(s){var e=document.querySelector(s);if(!e||e.disabled)return !!(e&&e.checked);if(!e.checked)e.click();return true}function tick(){pick('[data-autom="choose-noTradeIn"]');var p=document.querySelector('input[name="purchaseOption"][value="fullPrice"]');if(p&&p.type==="radio"&&!p.checked&&!p.disabled)p.click();pick('[data-autom="noapplecare"]')}tick();var n=0,id=setInterval(function(){tick();if(++n>80)clearInterval(id)},250)})();`;
+const APPLE_DEFAULTS_JS = `(function(){function pick(s){var e=document.querySelector(s);if(!e||e.disabled)return !!(e&&e.checked);if(!e.checked)e.click();return true}function done(){var t=document.querySelector('[data-autom="choose-noTradeIn"]');var a=document.querySelector('[data-autom="noapplecare"]');return !!(t&&t.checked&&a&&a.checked)}function tick(){pick('[data-autom="choose-noTradeIn"]');var p=document.querySelector('input[name="purchaseOption"][value="fullPrice"]');if(p&&p.type==="radio"&&!p.checked&&!p.disabled)p.click();pick('[data-autom="noapplecare"]');return done()}if(tick())return;var n=0,id=setInterval(function(){if(tick()||++n>80)clearInterval(id)},250);if(window.MutationObserver&&document.documentElement){var mo=new MutationObserver(function(){tick()});mo.observe(document.documentElement,{childList:true,subtree:true});setTimeout(function(){mo.disconnect()},20000)}})();`;
 
 function appleDefaultsBookmarklet() {
   return `javascript:${encodeURIComponent(APPLE_DEFAULTS_JS)}`;
+}
+
+function isAppleBuyUrl(href) {
+  try {
+    const url = new URL(href, document.baseURI);
+    if (url.hostname !== "www.apple.com") return false;
+    return /\/shop\/(buy-iphone|product)\//.test(url.pathname);
+  } catch (_error) {
+    return false;
+  }
+}
+
+function openAppleOrder(url) {
+  if (!url) return false;
+  // Must stay synchronous in the click so iOS does not block the popup.
+  const child = window.open(url, "_blank");
+  if (!child) return false;
+  let n = 0;
+  const id = window.setInterval(() => {
+    n += 1;
+    if (!child || child.closed || n > 80) {
+      window.clearInterval(id);
+      return;
+    }
+    try {
+      const href = child.location.href;
+      if (!href || href === "about:blank") return;
+      child.eval(APPLE_DEFAULTS_JS);
+      const doc = child.document;
+      if (
+        doc &&
+        doc.querySelector('[data-autom="choose-noTradeIn"]:checked') &&
+        doc.querySelector('[data-autom="noapplecare"]:checked')
+      ) {
+        window.clearInterval(id);
+      }
+    } catch (_crossOrigin) {
+      // Cross-origin apple.com: do not assign javascript: to location —
+      // that would navigate the buy page away if the browser allowed it.
+      window.clearInterval(id);
+    }
+  }, 250);
+  return true;
+}
+
+function handleAppleOrderClick(event) {
+  if (event.defaultPrevented || event.button !== 0) return;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const link = event.target.closest("a.variant-link, a.store-tag--link, a.apple-order-link");
+  if (!link || !isAppleBuyUrl(link.href)) return;
+  event.preventDefault();
+  if (!openAppleOrder(link.href)) {
+    window.location.href = link.href;
+  }
 }
 
 async function copyAppleDefaultsBookmarklet() {
@@ -1062,7 +1116,7 @@ async function copyAppleDefaultsBookmarklet() {
 function orderUrlFor(partNumber, modelId, label) {
   // Unique slug + product selects the SKU. igt=1 is Apple's own pay-in-full /
   // no-trade-in carry flag. AppleCare cannot be set from the query string
-  // (acpart=none is discarded); apple-defaults.js ticks the radios after open.
+  // (acpart=none is discarded); openAppleOrder ticks the radios after open.
   const params = new URLSearchParams([
     ["product", partNumber],
     ["purchaseOption", "fullPrice"],
@@ -1428,7 +1482,7 @@ function renderStoreTags(stores, fallbackWhen = "") {
         : "";
       const label = `<span class="store-tag__name"><strong>${storeDisplayName(store.store_name)}</strong>${when}</span>`;
       if (store.order_url) {
-        return `<a class="store-tag store-tag--link" href="${store.order_url}" target="_blank" rel="noopener noreferrer" title="${t("orderTitle")}">
+        return `<a class="store-tag store-tag--link apple-order-link" href="${store.order_url}" target="_blank" rel="noopener noreferrer" title="${t("orderTitle")}">
           ${label}
           <span class="store-tag__action">${t("order")}</span>
         </a>`;
@@ -1455,7 +1509,7 @@ function renderModels(models) {
           const rowClass = variant.pickup_status === "available" ? "row--available" : "";
           const displayLabel = variantDisplayLabel(variant.label);
           const variantLabel = variant.order_url
-            ? `<a class="variant-link" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">${displayLabel}</a>`
+            ? `<a class="variant-link apple-order-link" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">${displayLabel}</a>`
             : displayLabel;
           const pickupWhen =
             variant.pickup_status === "available"
@@ -1520,7 +1574,7 @@ function notifyPickupItem(item) {
     tag: item.key,
   });
   note.onclick = () => {
-    if (item.orderUrl) window.open(item.orderUrl, "_blank", "noopener,noreferrer");
+    if (item.orderUrl) openAppleOrder(item.orderUrl);
     window.focus();
   };
 }
@@ -1830,6 +1884,8 @@ if (els.preselectBtn) {
     copyAppleDefaultsBookmarklet().catch(() => {});
   });
 }
+
+document.addEventListener("click", handleAppleOrderClick);
 
 if (els.langZh) els.langZh.addEventListener("click", () => setLang("zh"));
 if (els.langEn) els.langEn.addEventListener("click", () => setLang("en"));
