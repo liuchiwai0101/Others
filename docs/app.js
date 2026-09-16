@@ -68,6 +68,14 @@ const I18N = {
     notifyWhen: " — 可取 {when}",
     sourceLive: "live",
     sourceSnapshot: "snapshot",
+    autoOpen: "有貨即開訂購",
+    watchHint: "搶購窗口約 1 分鐘。先篩選目標款式，再按監察：有貨會響鈴並開啟已預設「不折抵／無 AppleCare」的訂購頁。",
+    buyNow: "立即訂購",
+    buyBarTitle: "有貨 — 立刻下單",
+    buyBarDetail: "{label} · {store}{when}",
+    buyArmed: "已預開訂購分頁。有貨後會自動跳到 Apple。",
+    buyBlocked: "瀏覽器阻擋彈出視窗。請改按底部「立即訂購」。",
+    watchingArmed: "監察中（有貨即開）",
   },
   en: {
     title: "iPhone HK Stock",
@@ -125,6 +133,14 @@ const I18N = {
     notifyWhen: " — pick up {when}",
     sourceLive: "live",
     sourceSnapshot: "snapshot",
+    autoOpen: "Open order on stock",
+    watchHint: "The buy window is about 1 minute. Filter the exact model, then Watch: an alert will fire and open the Apple order page with no trade-in / no AppleCare.",
+    buyNow: "Order now",
+    buyBarTitle: "In stock — order now",
+    buyBarDetail: "{label} · {store}{when}",
+    buyArmed: "Order tab armed. It will jump to Apple when stock appears.",
+    buyBlocked: "The browser blocked the popup. Tap Order now in the bar below.",
+    watchingArmed: "Watching (open on stock)",
   },
 };
 const COLOR_ZH = {
@@ -152,8 +168,14 @@ const state = {
   snapshot: null,
   watching: false,
   watchTimer: null,
+  watchTickBusy: false,
+  nextLiveAt: 0,
   previousPickupAvailable: new Set(),
   seedNotificationBaseline: true,
+  buyTab: null,
+  audioCtx: null,
+  didAutoOpen: false,
+  lastBuyItem: null,
   selectedModels: new Set(),
   selectedStorage: new Set(),
   selectedColors: new Set(),
@@ -176,6 +198,11 @@ const els = {
   modelsMeta: document.getElementById("modelsMeta"),
   langZh: document.getElementById("langZh"),
   langEn: document.getElementById("langEn"),
+  autoOpenToggle: document.getElementById("autoOpenToggle"),
+  buyBar: document.getElementById("buyBar"),
+  buyBarTitle: document.getElementById("buyBarTitle"),
+  buyBarDetail: document.getElementById("buyBarDetail"),
+  buyBarLink: document.getElementById("buyBarLink"),
 };
 
 function readSavedLang() {
@@ -281,6 +308,7 @@ function applyStaticCopy() {
   if (els.langZh) els.langZh.classList.toggle("is-active", state.lang === "zh");
   if (els.langEn) els.langEn.classList.toggle("is-active", state.lang === "en");
   updateActionButtons();
+  if (state.lastBuyItem) updateBuyBar(state.lastBuyItem);
 }
 
 function updateActionButtons() {
@@ -368,7 +396,8 @@ function matchesCurrentFilters(model, variant) {
 function onFiltersChanged() {
   state.previousPickupAvailable = new Set();
   state.seedNotificationBaseline = true;
-  if (state.snapshot) applySnapshot(state.snapshot);
+  state.didAutoOpen = false;
+  if (state.snapshot) applySnapshot(state.snapshot, state.sourceLabel);
 }
 
 function renderChips(container, values, selectedSet, labelFn = (v) => v, keyFn = (v) => String(v)) {
@@ -844,6 +873,160 @@ function renderModels(models) {
     .join("");
 }
 
+function getAudioContext() {
+  const Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return null;
+  if (!state.audioCtx) state.audioCtx = new Ctor();
+  return state.audioCtx;
+}
+
+function unlockAudio() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+  try {
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    gain.gain.value = 0.0001;
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.01);
+  } catch (_error) {
+    /* ignore */
+  }
+}
+
+function playAlert() {
+  try {
+    navigator.vibrate?.([180, 70, 180, 70, 320]);
+  } catch (_error) {
+    /* ignore */
+  }
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  const beep = (freq, start, duration) => {
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = "square";
+    oscillator.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+    gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start(ctx.currentTime + start);
+    oscillator.stop(ctx.currentTime + start + duration + 0.02);
+  };
+  beep(880, 0, 0.16);
+  beep(1174, 0.18, 0.22);
+  beep(880, 0.44, 0.28);
+}
+
+function autoOpenEnabled() {
+  return Boolean(els.autoOpenToggle?.checked);
+}
+
+function armBuyTab() {
+  if (!autoOpenEnabled()) return;
+  if (state.buyTab && !state.buyTab.closed) return;
+  const tab = window.open("about:blank", "iphone-hk-order");
+  if (!tab) {
+    if (els.errorBox) {
+      els.errorBox.classList.remove("hidden");
+      els.errorBox.textContent = t("buyBlocked");
+    }
+    return;
+  }
+  state.buyTab = tab;
+  try {
+    tab.document.title = t("buyBarTitle");
+    tab.document.body.style.cssText = "font-family:sans-serif;background:#111;color:#eee;padding:24px";
+    tab.document.body.textContent = t("buyArmed");
+  } catch (_error) {
+    /* ignore */
+  }
+}
+
+function releaseBuyTabIfUnused() {
+  if (!state.buyTab || state.buyTab.closed) {
+    state.buyTab = null;
+    return;
+  }
+  try {
+    const href = state.buyTab.location.href;
+    if (!href || href === "about:blank") state.buyTab.close();
+  } catch (_error) {
+    /* already on Apple — leave the tab */
+    return;
+  }
+  state.buyTab = null;
+}
+
+function openOrderUrl(url) {
+  if (!url) return false;
+  if (state.buyTab && !state.buyTab.closed) {
+    try {
+      state.buyTab.location.replace(url);
+      state.buyTab.focus();
+      state.didAutoOpen = true;
+      return true;
+    } catch (_error) {
+      try {
+        state.buyTab.close();
+      } catch (_closeError) {
+        /* ignore */
+      }
+      state.buyTab = null;
+    }
+  }
+  const opened = window.open(url, "iphone-hk-order");
+  if (opened) {
+    state.buyTab = opened;
+    state.didAutoOpen = true;
+    return true;
+  }
+  return false;
+}
+
+function updateBuyBar(item) {
+  state.lastBuyItem = item || null;
+  if (!els.buyBar) return;
+  if (!item?.orderUrl) {
+    els.buyBar.classList.add("hidden");
+    document.body.classList.remove("has-buy-bar");
+    return;
+  }
+  const whenText = item.availableWhen ? t("notifyWhen", { when: localizeAppleText(item.availableWhen) }) : "";
+  els.buyBarTitle.textContent = t("buyBarTitle");
+  els.buyBarDetail.textContent = t("buyBarDetail", {
+    label: variantDisplayLabel(item.label),
+    store: storeDisplayName(item.storeName),
+    when: whenText,
+  });
+  els.buyBarLink.href = item.orderUrl;
+  els.buyBarLink.textContent = t("buyNow");
+  els.buyBar.classList.remove("hidden");
+  document.body.classList.add("has-buy-bar");
+}
+
+function notifyPickupItem(item) {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const whenText = item.availableWhen ? t("notifyWhen", { when: localizeAppleText(item.availableWhen) }) : "";
+  const note = new Notification(t("notifyTitle", { model: item.modelName }), {
+    body: t("notifyBody", {
+      label: variantDisplayLabel(item.label),
+      store: storeDisplayName(item.storeName),
+      when: whenText,
+    }),
+    tag: item.key,
+  });
+  note.onclick = () => {
+    openOrderUrl(item.orderUrl);
+    window.focus();
+  };
+}
+
 function collectFilteredPickupKeys(models) {
   const available = [];
   models.forEach((model) => {
@@ -856,6 +1039,7 @@ function collectFilteredPickupKeys(models) {
           label: variant.label,
           storeName: store.store_name,
           availableWhen: store.available_when || variant.pickup_when || "",
+          orderUrl: store.order_url || variant.order_url || "",
         });
       });
     });
@@ -863,29 +1047,46 @@ function collectFilteredPickupKeys(models) {
   return available;
 }
 
-function maybeNotifyPickup(models) {
-  if (!("Notification" in window) || Notification.permission !== "granted") return;
-
+function handleStockAlerts(models) {
   const available = collectFilteredPickupKeys(models);
   const availableKeys = new Set(available.map((item) => item.key));
+  updateBuyBar(available[0] || null);
 
-  if (state.seedNotificationBaseline || !state.watching) {
+  if (state.seedNotificationBaseline) {
+    const shouldJumpNow = state.watching && available.length > 0;
     state.previousPickupAvailable = availableKeys;
     state.seedNotificationBaseline = false;
+    if (shouldJumpNow) {
+      playAlert();
+      notifyPickupItem(available[0]);
+      if (autoOpenEnabled() && !state.didAutoOpen) {
+        const opened = openOrderUrl(available[0].orderUrl);
+        if (!opened && els.errorBox) {
+          els.errorBox.classList.remove("hidden");
+          els.errorBox.textContent = t("buyBlocked");
+        }
+      }
+    }
     return;
   }
 
-  available.forEach((item) => {
-    if (state.previousPickupAvailable.has(item.key)) return;
-    const whenText = item.availableWhen ? t("notifyWhen", { when: localizeAppleText(item.availableWhen) }) : "";
-    new Notification(t("notifyTitle", { model: item.modelName }), {
-      body: t("notifyBody", {
-        label: variantDisplayLabel(item.label),
-        store: storeDisplayName(item.storeName),
-        when: whenText,
-      }),
-    });
-  });
+  if (!state.watching) {
+    state.previousPickupAvailable = availableKeys;
+    return;
+  }
+
+  const newlyAvailable = available.filter((item) => !state.previousPickupAvailable.has(item.key));
+  if (newlyAvailable.length) {
+    playAlert();
+    newlyAvailable.forEach((item) => notifyPickupItem(item));
+    if (autoOpenEnabled() && !state.didAutoOpen) {
+      const opened = openOrderUrl(newlyAvailable[0].orderUrl);
+      if (!opened && els.errorBox) {
+        els.errorBox.classList.remove("hidden");
+        els.errorBox.textContent = t("buyBlocked");
+      }
+    }
+  }
 
   state.previousPickupAvailable = availableKeys;
 }
@@ -920,7 +1121,7 @@ function applySnapshot(data, sourceLabel = "snapshot") {
   }
 
   renderModels(models);
-  maybeNotifyPickup(models);
+  handleStockAlerts(models);
 }
 
 async function loadSnapshotFallback() {
@@ -942,7 +1143,7 @@ async function loadSnapshotFallback() {
   throw lastError || new Error(t("snapshotMissing"));
 }
 
-async function runLiveCheck() {
+async function runLiveCheck({ pickupOnly = false } = {}) {
   const selected = selectedParts();
   const partNumbers = selected.map((item) => item.part);
   const pickupResults = [];
@@ -953,7 +1154,7 @@ async function runLiveCheck() {
     errors.push({ part_number: "*", reason: "no variants selected" });
   } else {
     const pickupBatches = chunked(partNumbers);
-    const deliveryBatches = chunked(partNumbers);
+    const deliveryBatches = pickupOnly ? [] : chunked(partNumbers);
     for (let index = 0; index < pickupBatches.length; index += 1) {
       try {
         const { results, errors: batchErrors } = await checkPickup(pickupBatches[index]);
@@ -964,7 +1165,7 @@ async function runLiveCheck() {
       }
       if (index < pickupBatches.length - 1) await sleep(400);
     }
-    if (pickupBatches.length) await sleep(400);
+    if (deliveryBatches.length) await sleep(400);
     for (let index = 0; index < deliveryBatches.length; index += 1) {
       try {
         const { results, errors: batchErrors } = await checkDelivery(deliveryBatches[index]);
@@ -1006,7 +1207,7 @@ async function runCheck() {
     try {
       const live = await runLiveCheck();
       applySnapshot(live, "live");
-      setStatusMode(state.watching ? "watching" : "idle", state.watching ? "watchingLive" : "ready");
+      setStatusMode(state.watching ? "watching" : "idle", state.watching ? watchStatusKey() : "ready");
       return;
     } catch (liveError) {
       try {
@@ -1015,7 +1216,7 @@ async function runCheck() {
         els.errorBox.textContent = /429/.test(String(liveError.message))
           ? t("rateLimited")
           : t("liveBlocked", { error: liveError.message });
-        setStatusMode(state.watching ? "watching" : "idle", state.watching ? "watching" : "ready");
+        setStatusMode(state.watching ? "watching" : "idle", state.watching ? watchStatusKey() : "ready");
         return;
       } catch (_snapshotError) {
         const embedded = readEmbeddedJson("embedded-stock");
@@ -1044,33 +1245,62 @@ function stopWatching() {
     clearInterval(state.watchTimer);
     state.watchTimer = null;
   }
+  releaseBuyTabIfUnused();
   els.watchBtn.classList.remove("is-active");
   updateActionButtons();
   setStatusMode("idle", "ready");
 }
 
+function watchStatusKey() {
+  if (autoOpenEnabled()) return "watchingArmed";
+  return state.sourceLabel === "live" ? "watchingLive" : "watching";
+}
+
 async function runWatchTick() {
-  if (!state.watching) return;
-  setStatusMode("loading", "refreshingSnapshot");
+  if (!state.watching || state.watchTickBusy) return;
+  state.watchTickBusy = true;
   try {
+    const now = Date.now();
+    if (now >= state.nextLiveAt) {
+      try {
+        setStatusMode("loading", "checking");
+        const live = await runLiveCheck({ pickupOnly: true });
+        applySnapshot(live, "live");
+        setStatusMode("watching", watchStatusKey());
+        return;
+      } catch (liveError) {
+        if (/429/.test(String(liveError.message))) {
+          state.nextLiveAt = Date.now() + 45000;
+        }
+      }
+    }
+    setStatusMode("loading", "refreshingSnapshot");
     await loadSnapshotFallback();
-    setStatusMode("watching", "watching");
+    setStatusMode("watching", watchStatusKey());
   } catch (error) {
-    setStatusMode("watching", "watching");
+    setStatusMode("watching", watchStatusKey());
     els.errorBox.classList.remove("hidden");
     els.errorBox.textContent = t("snapshotFailed", { error: error.message });
+  } finally {
+    state.watchTickBusy = false;
   }
 }
 
+function watchIntervalMs() {
+  return Math.max(Number(els.intervalRange.value) || 15, 10) * 1000;
+}
+
 function startWatching() {
-  const intervalMs = Math.max(Number(els.intervalRange.value), 30) * 1000;
   state.watching = true;
   state.seedNotificationBaseline = true;
+  state.didAutoOpen = false;
+  state.nextLiveAt = 0;
   els.watchBtn.classList.add("is-active");
   updateActionButtons();
-  setStatusMode("watching", "watching");
+  setStatusMode("watching", watchStatusKey());
   runCheck();
-  state.watchTimer = setInterval(runWatchTick, intervalMs);
+  if (state.watchTimer) clearInterval(state.watchTimer);
+  state.watchTimer = setInterval(runWatchTick, watchIntervalMs());
 }
 
 function renderCatalogFilters(selectAllModels = false) {
@@ -1098,15 +1328,28 @@ function loadCatalog() {
 els.intervalRange.addEventListener("input", () => {
   els.intervalLabel.textContent = `${els.intervalRange.value}s`;
   if (state.watching) {
-    stopWatching();
-    startWatching();
+    if (state.watchTimer) clearInterval(state.watchTimer);
+    state.watchTimer = setInterval(runWatchTick, watchIntervalMs());
   }
 });
 
 els.checkBtn.addEventListener("click", runCheck);
-els.watchBtn.addEventListener("click", () => {
-  if (state.watching) stopWatching();
-  else startWatching();
+els.watchBtn.addEventListener("click", async () => {
+  if (state.watching) {
+    stopWatching();
+    return;
+  }
+  unlockAudio();
+  if (autoOpenEnabled()) armBuyTab();
+  if ("Notification" in window && Notification.permission === "default") {
+    try {
+      await Notification.requestPermission();
+    } catch (_error) {
+      /* ignore */
+    }
+    updateActionButtons();
+  }
+  startWatching();
 });
 
 els.notifyBtn.addEventListener("click", async () => {

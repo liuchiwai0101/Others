@@ -284,6 +284,83 @@ body {
   margin-top: 0;
 }
 
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 8px;
+  color: var(--text);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.toggle-row input {
+  accent-color: var(--success);
+  width: 16px;
+  height: 16px;
+}
+
+.hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.btn--buy {
+  background: var(--success);
+  color: #04210c;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+}
+
+.buy-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #10351c;
+  border: 1px solid rgba(48, 209, 88, 0.45);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.buy-bar.hidden { display: none; }
+
+.buy-bar__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.buy-bar__copy strong {
+  font-size: 0.86rem;
+}
+
+.buy-bar__copy span {
+  color: #b8f5c8;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.has-buy-bar .app {
+  padding-bottom: 88px;
+}
+
 .errors {
   margin-bottom: 16px;
   padding: 12px 14px;
