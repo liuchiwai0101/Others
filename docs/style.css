@@ -453,7 +453,13 @@ body {
 
 .store-tag__when {
   font-size: 0.66rem;
-  color: var(--muted);
+  color: #9dffb4;
+  font-variant-numeric: tabular-nums;
+}
+
+.availability-table .col-when {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .store-tag strong {
@@ -506,14 +512,16 @@ body {
 }
 
 @media (max-width: 720px) {
-  .col-when,
   .col-delivery { display: none; }
   .availability-table {
     width: 100%;
   }
+  .availability-table .col-when {
+    font-size: 0.7rem;
+  }
   .availability-table .col-stores {
-    width: 48%;
-    min-width: 180px;
+    width: 40%;
+    min-width: 150px;
   }
   .store-tags { min-width: 0; }
 }

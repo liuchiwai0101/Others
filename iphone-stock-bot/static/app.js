@@ -216,6 +216,39 @@ function storeDisplayName(name) {
   return match ? match[1] : name;
 }
 
+const WEEKDAY_ZH = { Mon: "一", Tue: "二", Wed: "三", Thu: "四", Fri: "五", Sat: "六", Sun: "日" };
+const MONTH_NUM = {
+  Jan: 1,
+  Feb: 2,
+  Mar: 3,
+  Apr: 4,
+  May: 5,
+  Jun: 6,
+  Jul: 7,
+  Aug: 8,
+  Sep: 9,
+  Sept: 9,
+  Oct: 10,
+  Nov: 11,
+  Dec: 12,
+};
+
+function localizeEnglishDate(text) {
+  return String(text).replace(
+    /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\b/gi,
+    (matched, weekday, day, month) => {
+      const weekKey = weekday[0].toUpperCase() + weekday.slice(1, 3).toLowerCase();
+      const monthKey = /^sept/i.test(month)
+        ? "Sept"
+        : month[0].toUpperCase() + month.slice(1, 3).toLowerCase();
+      const weekZh = WEEKDAY_ZH[weekKey];
+      const monthNum = MONTH_NUM[monthKey];
+      if (!weekZh || !monthNum) return matched;
+      return `${monthNum}月${Number(day)}日（${weekZh}）`;
+    }
+  );
+}
+
 function localizeAppleText(text) {
   if (text == null || text === "") return text;
   if (state.lang !== "zh") {
@@ -233,7 +266,7 @@ function localizeAppleText(text) {
   replacements.forEach(([en, zh]) => {
     out = out.replaceAll(en, zh);
   });
-  return out;
+  return localizeEnglishDate(out);
 }
 
 function applyStaticCopy() {
@@ -376,14 +409,15 @@ function badgeLabel(status) {
   return "?";
 }
 
-function renderStoreTags(stores) {
+function renderStoreTags(stores, fallbackWhen = "") {
   if (!stores.length) {
     return '<span class="placeholder">—</span>';
   }
   return `<div class="store-tags">${stores
     .map((store) => {
-      const when = store.available_when
-        ? `<span class="store-tag__when">${localizeAppleText(store.available_when)}</span>`
+      const whenText = store.available_when || fallbackWhen;
+      const when = whenText
+        ? `<span class="store-tag__when">${localizeAppleText(whenText)}</span>`
         : "";
       const orderHref = store.order_url;
       const storeHref = store.store_url;
@@ -423,7 +457,7 @@ function renderModels(models) {
               <td class="col-variant">${variantLabel}</td>
               <td class="col-pickup"><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
               <td class="col-when">${variant.pickup_status === "available" ? localizeAppleText(variant.pickup_when || variant.pickup_quote || "—") : "—"}</td>
-              <td class="col-stores">${renderStoreTags(variant.pickup_stores)}</td>
+              <td class="col-stores">${renderStoreTags(variant.pickup_stores, variant.pickup_when || variant.pickup_quote || "")}</td>
               <td class="col-delivery"><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
               <td class="col-date">${localizeAppleText(variant.delivery_date)}</td>
             </tr>
