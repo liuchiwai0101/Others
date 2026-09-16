@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -86,7 +88,24 @@ def _pickup_status(raw: str | None) -> StockStatus:
     return StockStatus.UNKNOWN
 
 
-def _available_when(availability: dict[str, Any], regular: dict[str, Any]) -> str:
+_WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+_MONTHS = {
+    1: "Jan",
+    2: "Feb",
+    3: "Mar",
+    4: "Apr",
+    5: "May",
+    6: "Jun",
+    7: "Jul",
+    8: "Aug",
+    9: "Sep",
+    10: "Oct",
+    11: "Nov",
+    12: "Dec",
+}
+
+
+def _pickup_date(availability: dict[str, Any], regular: dict[str, Any]) -> str:
     quote = (availability.get("pickupSearchQuote") or "").strip()
     store_quote = (regular.get("storePickupQuote") or "").strip()
 
@@ -101,6 +120,102 @@ def _available_when(availability: dict[str, Any], regular: dict[str, Any]) -> st
     if store_quote.lower().startswith("today"):
         return "Today"
     return quote or store_quote or ""
+
+
+def _encoded_pickup_datetime(store: dict[str, Any]) -> datetime | None:
+    raw = str(store.get("pickupEncodedUpperDateString") or "").strip()
+    if len(raw) == 8 and raw.isdigit():
+        return datetime.strptime(raw, "%Y%m%d")
+    return None
+
+
+def _expand_store_days(text: str) -> set[str]:
+    cleaned = (text or "").replace(":", "").strip()
+    days: set[str] = set()
+    if not cleaned:
+        return days
+    for chunk in cleaned.split(","):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        if "-" in chunk:
+            start_text, end_text = [part.strip()[:3].title() for part in chunk.split("-", 1)]
+            if start_text in _WEEKDAYS and end_text in _WEEKDAYS:
+                start = _WEEKDAYS.index(start_text)
+                end = _WEEKDAYS.index(end_text)
+                if start <= end:
+                    days.update(_WEEKDAYS[start : end + 1])
+                else:
+                    days.update(_WEEKDAYS[start:] + _WEEKDAYS[: end + 1])
+            continue
+        day = chunk[:3].title()
+        if day in _WEEKDAYS:
+            days.add(day)
+    return days
+
+
+def _to_24h_range(text: str) -> str:
+    def convert(match: re.Match[str]) -> str:
+        hour = int(match.group(1))
+        minute = match.group(2)
+        meridian = match.group(3).upper()
+        if meridian == "PM" and hour != 12:
+            hour += 12
+        if meridian == "AM" and hour == 12:
+            hour = 0
+        return f"{hour}:{minute}"
+
+    converted = re.sub(r"(\d{1,2}):(\d{2})\s*([AP]M)", convert, text or "", flags=re.I)
+    return converted.replace(" - ", "–").replace("-", "–").strip()
+
+
+def _special_hours(store: dict[str, Any], when: datetime) -> str:
+    label = f"{_MONTHS[when.month]} {when.day}"
+    for item in (store.get("specialHours") or {}).get("specialHoursData") or []:
+        days = str(item.get("specialDays") or "").replace(":", "").strip()
+        if days == label:
+            return str(item.get("specialTimings") or "").strip()
+    for holiday in (store.get("retailStore") or {}).get("storeHolidays") or []:
+        if str(holiday.get("date") or "").strip() != label:
+            continue
+        if holiday.get("closed"):
+            return "Closed"
+        return str(holiday.get("hours") or "").strip()
+    return ""
+
+
+def _regular_hours(store: dict[str, Any], weekday: str | None) -> str:
+    entries = (store.get("storeHours") or {}).get("hours") or []
+    if not entries:
+        entries = (store.get("retailStore") or {}).get("storeHours") or []
+    if not entries:
+        return ""
+    if weekday:
+        for entry in entries:
+            days = _expand_store_days(str(entry.get("storeDays") or ""))
+            if not days or weekday in days:
+                return str(entry.get("storeTimings") or "").strip()
+    return str(entries[0].get("storeTimings") or "").strip()
+
+
+def _store_hours_for_pickup(store: dict[str, Any]) -> str:
+    when = _encoded_pickup_datetime(store)
+    raw = ""
+    if when:
+        raw = _special_hours(store, when) or _regular_hours(store, _WEEKDAYS[when.weekday()])
+    if not raw:
+        raw = _regular_hours(store, None)
+    return _to_24h_range(raw) if raw else ""
+
+
+def _available_when(availability: dict[str, Any], regular: dict[str, Any], store: dict[str, Any]) -> str:
+    date = _pickup_date(availability, regular)
+    if not date or date.lower() in {"currently unavailable", "unavailable"}:
+        return date
+    hours = _store_hours_for_pickup(store)
+    if date and hours:
+        return f"{date} · {hours}"
+    return date or hours
 
 
 def _build_pickup_url(
@@ -170,7 +285,7 @@ def check_pickup(
                     part_number=part_number,
                     status=_pickup_status(availability.get("pickupDisplay")),
                     quote=availability.get("pickupSearchQuote") or regular.get("storePickupQuote") or "",
-                    available_when=_available_when(availability, regular),
+                    available_when=_available_when(availability, regular, store),
                     product_title=(regular.get("storePickupProductTitle") or part_number).replace("\xa0", " "),
                     store_name=store_name,
                     store_number=store_number_value,

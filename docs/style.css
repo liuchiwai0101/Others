@@ -455,11 +455,14 @@ body {
   font-size: 0.66rem;
   color: #9dffb4;
   font-variant-numeric: tabular-nums;
+  white-space: normal;
+  line-height: 1.3;
 }
 
 .availability-table .col-when {
-  white-space: nowrap;
+  white-space: normal;
   font-variant-numeric: tabular-nums;
+  line-height: 1.3;
 }
 
 .store-tag strong {

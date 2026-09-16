@@ -271,6 +271,7 @@ function localizeAppleText(text) {
     ["currently unavailable", "暫時未能提供"],
     ["Unavailable", "未能提供"],
     ["Today", "今日"],
+    ["Closed", "休息"],
     ["unknown", "未知"],
   ];
   let out = String(text);
@@ -533,7 +534,10 @@ function pickupStatus(raw) {
   return "unknown";
 }
 
-function availableWhen(availability, regular) {
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function pickupDate(availability, regular) {
   const quote = (availability.pickupSearchQuote || "").trim();
   const storeQuote = (regular.storePickupQuote || "").trim();
   if (quote.toLowerCase().startsWith("available ")) return quote.slice("Available ".length).trim();
@@ -541,6 +545,99 @@ function availableWhen(availability, regular) {
   if (storeQuote.includes(" at Apple ")) return storeQuote.split(" at Apple ", 1)[0].trim();
   if (storeQuote.toLowerCase().startsWith("today")) return "Today";
   return quote || storeQuote || "";
+}
+
+function expandStoreDays(text) {
+  const cleaned = String(text || "").replaceAll(":", "").trim();
+  const days = new Set();
+  if (!cleaned) return days;
+  cleaned.split(",").forEach((chunk) => {
+    const part = chunk.trim();
+    if (!part) return;
+    if (part.includes("-")) {
+      const [startText, endText] = part.split("-", 2).map((item) => item.trim().slice(0, 3));
+      const start = WEEKDAYS.indexOf(startText);
+      const end = WEEKDAYS.indexOf(endText);
+      if (start < 0 || end < 0) return;
+      if (start <= end) WEEKDAYS.slice(start, end + 1).forEach((day) => days.add(day));
+      else [...WEEKDAYS.slice(start), ...WEEKDAYS.slice(0, end + 1)].forEach((day) => days.add(day));
+      return;
+    }
+    const day = part.slice(0, 3);
+    if (WEEKDAYS.includes(day)) days.add(day);
+  });
+  return days;
+}
+
+function to24hRange(text) {
+  const converted = String(text || "").replace(/(\d{1,2}):(\d{2})\s*([AP]M)/gi, (_m, hourText, minute, meridian) => {
+    let hour = Number(hourText);
+    const ap = meridian.toUpperCase();
+    if (ap === "PM" && hour !== 12) hour += 12;
+    if (ap === "AM" && hour === 12) hour = 0;
+    return `${hour}:${minute}`;
+  });
+  return converted.replaceAll(" - ", "–").replaceAll("-", "–").trim();
+}
+
+function encodedPickupDate(store) {
+  const raw = String(store.pickupEncodedUpperDateString || "").trim();
+  if (!/^\d{8}$/.test(raw)) return null;
+  const year = Number(raw.slice(0, 4));
+  const month = Number(raw.slice(4, 6));
+  const day = Number(raw.slice(6, 8));
+  const date = new Date(year, month - 1, day);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
+function specialHours(store, when) {
+  const label = `${MONTHS[when.getMonth()]} ${when.getDate()}`;
+  for (const item of store.specialHours?.specialHoursData || []) {
+    const days = String(item.specialDays || "").replaceAll(":", "").trim();
+    if (days === label) return String(item.specialTimings || "").trim();
+  }
+  for (const holiday of store.retailStore?.storeHolidays || []) {
+    if (String(holiday.date || "").trim() !== label) continue;
+    if (holiday.closed) return "Closed";
+    return String(holiday.hours || "").trim();
+  }
+  return "";
+}
+
+function regularHours(store, weekday) {
+  const entries = store.storeHours?.hours || store.retailStore?.storeHours || [];
+  if (!entries.length) return "";
+  if (weekday) {
+    for (const entry of entries) {
+      const days = expandStoreDays(entry.storeDays);
+      if (!days.size || days.has(weekday)) return String(entry.storeTimings || "").trim();
+    }
+  }
+  return String(entries[0].storeTimings || "").trim();
+}
+
+function storeHoursForPickup(store) {
+  const when = encodedPickupDate(store);
+  let raw = "";
+  if (when) {
+    raw = specialHours(store, when) || regularHours(store, WEEKDAYS[when.getDay() === 0 ? 6 : when.getDay() - 1]);
+  }
+  if (!raw) raw = regularHours(store, null);
+  return raw ? to24hRange(raw) : "";
+}
+
+function availableWhen(availability, regular, store) {
+  const date = pickupDate(availability, regular);
+  if (!date || ["currently unavailable", "unavailable"].includes(date.toLowerCase())) return date;
+  const hours = storeHoursForPickup(store || {});
+  if (date && hours) return `${date} · ${hours}`;
+  return date || hours || "";
+}
+
+function formatPickupWhen(text) {
+  if (!text) return "—";
+  return localizeAppleText(text).replaceAll(" · ", "<br>");
 }
 
 function buildPickupUrl(parts) {
@@ -576,7 +673,7 @@ async function checkPickup(parts) {
         part_number: partNumber,
         status: pickupStatus(availability.pickupDisplay),
         quote: availability.pickupSearchQuote || regular.storePickupQuote || "",
-        available_when: availableWhen(availability, regular),
+        available_when: availableWhen(availability, regular, store),
         store_name: store.storeName || "Unknown Store",
         store_number: store.storeNumber || "",
         city: store.city || "",
@@ -763,7 +860,7 @@ function renderStoreTags(stores, fallbackWhen = "") {
     .map((store) => {
       const whenText = store.available_when || fallbackWhen;
       const when = whenText
-        ? `<span class="store-tag__when">${localizeAppleText(whenText)}</span>`
+        ? `<span class="store-tag__when">${formatPickupWhen(whenText)}</span>`
         : "";
       const label = `<span class="store-tag__name"><strong>${storeDisplayName(store.store_name)}</strong>${when}</span>`;
       if (store.order_url) {
@@ -798,7 +895,7 @@ function renderModels(models) {
             : displayLabel;
           const pickupWhen =
             variant.pickup_status === "available"
-              ? localizeAppleText(variant.pickup_when || variant.pickup_quote || "—")
+              ? formatPickupWhen(variant.pickup_when || variant.pickup_quote || "—")
               : "—";
           return `
             <tr class="${rowClass}">

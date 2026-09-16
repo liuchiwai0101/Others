@@ -260,6 +260,7 @@ function localizeAppleText(text) {
     ["currently unavailable", "暫時未能提供"],
     ["Unavailable", "未能提供"],
     ["Today", "今日"],
+    ["Closed", "休息"],
     ["unknown", "未知"],
   ];
   let out = String(text);
@@ -267,6 +268,11 @@ function localizeAppleText(text) {
     out = out.replaceAll(en, zh);
   });
   return localizeEnglishDate(out);
+}
+
+function formatPickupWhen(text) {
+  if (!text) return "—";
+  return localizeAppleText(text).replaceAll(" · ", "<br>");
 }
 
 function applyStaticCopy() {
@@ -417,7 +423,7 @@ function renderStoreTags(stores, fallbackWhen = "") {
     .map((store) => {
       const whenText = store.available_when || fallbackWhen;
       const when = whenText
-        ? `<span class="store-tag__when">${localizeAppleText(whenText)}</span>`
+        ? `<span class="store-tag__when">${formatPickupWhen(whenText)}</span>`
         : "";
       const orderHref = store.order_url;
       const storeHref = store.store_url;
@@ -456,7 +462,7 @@ function renderModels(models) {
             <tr class="${rowClass}">
               <td class="col-variant">${variantLabel}</td>
               <td class="col-pickup"><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
-              <td class="col-when">${variant.pickup_status === "available" ? localizeAppleText(variant.pickup_when || variant.pickup_quote || "—") : "—"}</td>
+              <td class="col-when">${variant.pickup_status === "available" ? formatPickupWhen(variant.pickup_when || variant.pickup_quote || "—") : "—"}</td>
               <td class="col-stores">${renderStoreTags(variant.pickup_stores, variant.pickup_when || variant.pickup_quote || "")}</td>
               <td class="col-delivery"><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
               <td class="col-date">${localizeAppleText(variant.delivery_date)}</td>
