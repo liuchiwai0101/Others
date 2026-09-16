@@ -2039,22 +2039,19 @@ els.intervalRange.addEventListener("input", () => {
 });
 
 els.checkBtn.addEventListener("click", runCheck);
-els.watchBtn.addEventListener("click", async () => {
+els.watchBtn.addEventListener("click", () => {
   if (state.watching) {
     stopWatching();
     return;
   }
   unlockAudio();
   if (autoOpenEnabled()) armBuyTab();
-  if ("Notification" in window && Notification.permission === "default") {
-    try {
-      await Notification.requestPermission();
-    } catch (_error) {
-      /* ignore */
-    }
-    updateActionButtons();
-  }
   startWatching();
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission()
+      .then(() => updateActionButtons())
+      .catch(() => {});
+  }
 });
 
 els.notifyBtn.addEventListener("click", async () => {
