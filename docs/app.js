@@ -255,7 +255,7 @@ function localizeEnglishDate(text) {
       const weekZh = WEEKDAY_ZH[weekKey];
       const monthNum = MONTH_NUM[monthKey];
       if (!weekZh || !monthNum) return matched;
-      return `${monthNum}月${Number(day)}日（${weekZh}）`;
+      return `${Number(day)}/${monthNum}（${weekZh}）`;
     }
   );
 }
