@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-09-16T01:24:01.864203+00:00",
+  "checked_at": "2026-09-16T01:38:26.986410+00:00",
   "part_numbers": [
     "MK2D4ZA/A",
     "MK2E4ZA/A",
@@ -334,7 +334,7 @@
       "name": "iPhone 18 Pro",
       "summary": {
         "variant_count": 16,
-        "pickup_available": 4,
+        "pickup_available": 3,
         "delivery_available": 16
       },
       "variants": [
@@ -380,6 +380,15 @@
               "quote": "Available Sat 19 Sept",
               "available_when": "Sat 19 Sept",
               "store_url": "https://www.apple.com/hk/retail/festivalwalk",
+              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
+            },
+            {
+              "store_name": "New Town Plaza",
+              "store_number": "R610",
+              "city": "Sha Tin",
+              "quote": "Available Fri 18 Sept",
+              "available_when": "Fri 18 Sept",
+              "store_url": "https://www.apple.com/hk/retail/newtownplaza",
               "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-256gb-black?product=MJRP4ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
             }
           ],
@@ -545,20 +554,10 @@
           "part_number": "MJT14ZA/A",
           "label": "1TB Burgundy",
           "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-1tb-burgundy?product=MJT14ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none",
-          "pickup_status": "available",
-          "pickup_quote": "Available Sat 19 Sept",
-          "pickup_when": "Sat 19 Sept",
-          "pickup_stores": [
-            {
-              "store_name": "ifc mall",
-              "store_number": "R428",
-              "city": "Central",
-              "quote": "Available Sat 19 Sept",
-              "available_when": "Sat 19 Sept",
-              "store_url": "https://www.apple.com/hk/retail/ifcmall/",
-              "order_url": "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro/6.3-inch-display-1tb-burgundy?product=MJT14ZA%2FA&purchaseOption=fullPrice&tradeInSelection=noTradeIn&tradeInType=noTradeIn&igt=1&appleCareType=noapplecare&acpart=none"
-            }
-          ],
+          "pickup_status": "unavailable",
+          "pickup_quote": "Currently unavailable",
+          "pickup_when": "Currently unavailable",
+          "pickup_stores": [],
           "delivery_status": "available",
           "delivery_date": "02/10/2026 – 09/10/2026"
         },
