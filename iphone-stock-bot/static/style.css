@@ -452,7 +452,7 @@ body {
 }
 
 .store-tag__when {
-  font-size: 0.62rem;
+  font-size: 0.66rem;
   color: #9dffb4;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -463,8 +463,6 @@ body {
 .availability-table td.col-when {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-  line-height: 1.3;
-  min-width: 6.2rem;
 }
 
 .store-tag strong {

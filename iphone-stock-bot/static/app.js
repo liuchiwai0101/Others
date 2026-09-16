@@ -244,7 +244,7 @@ function localizeEnglishDate(text) {
       const weekZh = WEEKDAY_ZH[weekKey];
       const monthNum = MONTH_NUM[monthKey];
       if (!weekZh || !monthNum) return matched;
-      return `${Number(day)}/${monthNum}（${weekZh}）`;
+      return `${monthNum}月${Number(day)}日（${weekZh}）`;
     }
   );
 }
@@ -272,7 +272,7 @@ function localizeAppleText(text) {
 
 function formatPickupWhen(text) {
   if (!text) return "—";
-  return localizeAppleText(text).replaceAll(" · ", "<br>");
+  return localizeAppleText(String(text).split(" · ")[0]);
 }
 
 function applyStaticCopy() {
