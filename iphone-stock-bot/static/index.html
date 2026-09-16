@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>iPhone 香港庫存</title>
-  <link rel="stylesheet" href="/static/style.css?v=14">
+  <link rel="stylesheet" href="/static/style.css?v=16">
 </head>
 <body>
   <div class="app">
@@ -56,17 +56,12 @@
           <input type="range" id="intervalRange" min="10" max="60" step="5" value="15">
         </label>
 
-        <label class="toggle-row">
-          <input type="checkbox" id="autoOpenToggle" checked>
-          <span data-i18n="autoOpen">有貨即開訂購</span>
-        </label>
-
         <div class="actions actions--compact">
           <button class="btn btn--primary" id="checkBtn" type="button" data-i18n="check">查詢</button>
           <button class="btn btn--secondary" id="watchBtn" type="button">監察</button>
           <button class="btn btn--ghost" id="notifyBtn" type="button">通知</button>
         </div>
-        <p class="hint" data-i18n="watchHint">搶購窗口約 1 分鐘。先篩選目標款式，再按監察：有貨會響鈴並開啟已預設「不折抵／無 AppleCare」的訂購頁。</p>
+        <button class="preselect-hint" id="preselectBtn" type="button" data-i18n="preselectHint">複製書籤：自動剔不換購／無 AppleCare+</button>
       </aside>
 
       <section class="panel panel--results">
@@ -85,14 +80,6 @@
     </main>
   </div>
 
-  <div class="buy-bar hidden" id="buyBar">
-    <div class="buy-bar__copy">
-      <strong id="buyBarTitle">有貨</strong>
-      <span id="buyBarDetail"></span>
-    </div>
-    <a class="btn btn--buy" id="buyBarLink" href="#" target="_blank" rel="noopener noreferrer">立即訂購</a>
-  </div>
-
-  <script src="/static/app.js?v=14"></script>
+  <script src="/static/app.js?v=16"></script>
 </body>
 </html>

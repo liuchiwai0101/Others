@@ -31,7 +31,10 @@ const I18N = {
     na: "不適用",
     unknown: "未知",
     order: "訂購",
-    orderTitle: "前往 Apple 香港訂購此型號",
+    orderTitle: "前往 Apple 香港訂購此型號（容量、顏色已選）",
+    preselect: "預選",
+    preselectCopied: "已複製。加到 Safari 書籤，在 Apple 訂購頁點一次即可。",
+    preselectHint: "複製書籤：自動剔不換購／無 AppleCare+",
     meta: "{variants} 款 · {pickup} 取貨 · {delivery} 送貨",
     storesMeta: "{count} 間零售店 · {source}",
     live: "即時",
@@ -56,14 +59,6 @@ const I18N = {
     notifyWhen: " — 可取 {when}",
     sourceLive: "live",
     sourceSnapshot: "snapshot",
-    autoOpen: "有貨即開訂購",
-    watchHint: "搶購窗口約 1 分鐘。先篩選目標款式，再按監察：有貨會響鈴並開啟已預設「不折抵／無 AppleCare」的訂購頁。",
-    buyNow: "立即訂購",
-    buyBarTitle: "有貨 — 立刻下單",
-    buyBarDetail: "{label} · {store}{when}",
-    buyArmed: "已預開訂購分頁。有貨後會自動跳到 Apple。",
-    buyBlocked: "瀏覽器阻擋彈出視窗。請改按底部「立即訂購」。",
-    watchingArmed: "監察中（有貨即開）",
   },
   en: {
     title: "iPhone HK Stock",
@@ -96,7 +91,10 @@ const I18N = {
     na: "N/A",
     unknown: "unknown",
     order: "Order",
-    orderTitle: "Order this model on Apple HK",
+    orderTitle: "Order this model on Apple HK (storage and colour already selected)",
+    preselect: "Preselect",
+    preselectCopied: "Copied. Add it in Safari, then tap once on the Apple buy page.",
+    preselectHint: "Copy bookmark: auto-tick No trade-in / No AppleCare+",
     meta: "{variants} variants · {pickup} pickup · {delivery} delivery",
     storesMeta: "{count} stores · {source}",
     live: "live",
@@ -121,14 +119,6 @@ const I18N = {
     notifyWhen: " — pick up {when}",
     sourceLive: "live",
     sourceSnapshot: "snapshot",
-    autoOpen: "Open order on stock",
-    watchHint: "The buy window is about 1 minute. Filter the exact model, then Watch: an alert will fire and open the Apple order page with no trade-in / no AppleCare.",
-    buyNow: "Order now",
-    buyBarTitle: "In stock — order now",
-    buyBarDetail: "{label} · {store}{when}",
-    buyArmed: "Order tab armed. It will jump to Apple when stock appears.",
-    buyBlocked: "The browser blocked the popup. Tap Order now in the bar below.",
-    watchingArmed: "Watching (open on stock)",
   },
 };
 const COLOR_ZH = {
@@ -160,10 +150,6 @@ const state = {
   watchTickBusy: false,
   previousPickupAvailable: new Set(),
   seedNotificationBaseline: true,
-  buyTab: null,
-  audioCtx: null,
-  didAutoOpen: false,
-  lastBuyItem: null,
   selectedModels: new Set(),
   selectedStorage: new Set(),
   selectedColors: new Set(),
@@ -186,11 +172,7 @@ const els = {
   modelsMeta: document.getElementById("modelsMeta"),
   langZh: document.getElementById("langZh"),
   langEn: document.getElementById("langEn"),
-  autoOpenToggle: document.getElementById("autoOpenToggle"),
-  buyBar: document.getElementById("buyBar"),
-  buyBarTitle: document.getElementById("buyBarTitle"),
-  buyBarDetail: document.getElementById("buyBarDetail"),
-  buyBarLink: document.getElementById("buyBarLink"),
+  preselectBtn: document.getElementById("preselectBtn"),
 };
 
 function readSavedLang() {
@@ -301,7 +283,6 @@ function applyStaticCopy() {
   if (els.langZh) els.langZh.classList.toggle("is-active", state.lang === "zh");
   if (els.langEn) els.langEn.classList.toggle("is-active", state.lang === "en");
   updateActionButtons();
-  if (state.lastBuyItem) updateBuyBar(state.lastBuyItem);
 }
 
 function updateActionButtons() {
@@ -367,7 +348,6 @@ function matchesCurrentFilters(model, variant) {
 function onFiltersChanged() {
   state.previousPickupAvailable = new Set();
   state.seedNotificationBaseline = true;
-  state.didAutoOpen = false;
 }
 
 function renderChips(container, values, selectedSet, labelFn = (v) => v, keyFn = (v) => String(v)) {
@@ -403,6 +383,25 @@ function selectedModelsList() {
     return "all";
   }
   return [...state.selectedModels];
+}
+
+const APPLE_DEFAULTS_JS = `(function(){function pick(s){var e=document.querySelector(s);if(!e||e.disabled)return !!(e&&e.checked);if(!e.checked)e.click();return true}function tick(){pick('[data-autom="choose-noTradeIn"]');var p=document.querySelector('input[name="purchaseOption"][value="fullPrice"]');if(p&&p.type==="radio"&&!p.checked&&!p.disabled)p.click();pick('[data-autom="noapplecare"]')}tick();var n=0,id=setInterval(function(){tick();if(++n>80)clearInterval(id)},250)})();`;
+
+function appleDefaultsBookmarklet() {
+  return `javascript:${encodeURIComponent(APPLE_DEFAULTS_JS)}`;
+}
+
+async function copyAppleDefaultsBookmarklet() {
+  const text = appleDefaultsBookmarklet();
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (_error) {
+    window.prompt(t("preselectCopied"), text);
+    return;
+  }
+  if (!els.preselectBtn) return;
+  els.preselectBtn.textContent = t("preselectCopied");
+  window.setTimeout(() => applyStaticCopy(), 4500);
 }
 
 function buildRequestBody({ pickupOnly = false } = {}) {
@@ -523,142 +522,6 @@ function renderModels(models) {
     .join("");
 }
 
-function getAudioContext() {
-  const Ctor = window.AudioContext || window.webkitAudioContext;
-  if (!Ctor) return null;
-  if (!state.audioCtx) state.audioCtx = new Ctor();
-  return state.audioCtx;
-}
-
-function unlockAudio() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  if (ctx.state === "suspended") ctx.resume().catch(() => {});
-  try {
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    gain.gain.value = 0.0001;
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.01);
-  } catch (_error) {
-    /* ignore */
-  }
-}
-
-function playAlert() {
-  try {
-    navigator.vibrate?.([180, 70, 180, 70, 320]);
-  } catch (_error) {
-    /* ignore */
-  }
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  const beep = (freq, start, duration) => {
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    oscillator.type = "square";
-    oscillator.frequency.value = freq;
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
-    gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + start + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.start(ctx.currentTime + start);
-    oscillator.stop(ctx.currentTime + start + duration + 0.02);
-  };
-  beep(880, 0, 0.16);
-  beep(1174, 0.18, 0.22);
-  beep(880, 0.44, 0.28);
-}
-
-function autoOpenEnabled() {
-  return Boolean(els.autoOpenToggle?.checked);
-}
-
-function armBuyTab() {
-  if (!autoOpenEnabled()) return;
-  if (state.buyTab && !state.buyTab.closed) return;
-  const tab = window.open("about:blank", "iphone-hk-order");
-  if (!tab) {
-    if (els.errorBox) {
-      els.errorBox.classList.remove("hidden");
-      els.errorBox.textContent = t("buyBlocked");
-    }
-    return;
-  }
-  state.buyTab = tab;
-  try {
-    tab.document.title = t("buyBarTitle");
-    tab.document.body.style.cssText = "font-family:sans-serif;background:#111;color:#eee;padding:24px";
-    tab.document.body.textContent = t("buyArmed");
-  } catch (_error) {
-    /* ignore */
-  }
-}
-
-function releaseBuyTabIfUnused() {
-  if (!state.buyTab || state.buyTab.closed) {
-    state.buyTab = null;
-    return;
-  }
-  try {
-    const href = state.buyTab.location.href;
-    if (!href || href === "about:blank") state.buyTab.close();
-  } catch (_error) {
-    return;
-  }
-  state.buyTab = null;
-}
-
-function openOrderUrl(url) {
-  if (!url) return false;
-  if (state.buyTab && !state.buyTab.closed) {
-    try {
-      state.buyTab.location.replace(url);
-      state.buyTab.focus();
-      state.didAutoOpen = true;
-      return true;
-    } catch (_error) {
-      try {
-        state.buyTab.close();
-      } catch (_closeError) {
-        /* ignore */
-      }
-      state.buyTab = null;
-    }
-  }
-  const opened = window.open(url, "iphone-hk-order");
-  if (opened) {
-    state.buyTab = opened;
-    state.didAutoOpen = true;
-    return true;
-  }
-  return false;
-}
-
-function updateBuyBar(item) {
-  state.lastBuyItem = item || null;
-  if (!els.buyBar) return;
-  if (!item?.orderUrl) {
-    els.buyBar.classList.add("hidden");
-    document.body.classList.remove("has-buy-bar");
-    return;
-  }
-  const whenText = item.availableWhen ? t("notifyWhen", { when: localizeAppleText(item.availableWhen) }) : "";
-  els.buyBarTitle.textContent = t("buyBarTitle");
-  els.buyBarDetail.textContent = t("buyBarDetail", {
-    label: variantDisplayLabel(item.label),
-    store: storeDisplayName(item.storeName),
-    when: whenText,
-  });
-  els.buyBarLink.href = item.orderUrl;
-  els.buyBarLink.textContent = t("buyNow");
-  els.buyBar.classList.remove("hidden");
-  document.body.classList.add("has-buy-bar");
-}
-
 function notifyPickupItem(item) {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
   const whenText = item.availableWhen ? t("notifyWhen", { when: localizeAppleText(item.availableWhen) }) : "";
@@ -671,7 +534,7 @@ function notifyPickupItem(item) {
     tag: item.key,
   });
   note.onclick = () => {
-    openOrderUrl(item.orderUrl);
+    if (item.orderUrl) window.open(item.orderUrl, "_blank", "noopener,noreferrer");
     window.focus();
   };
 }
@@ -696,46 +559,20 @@ function collectFilteredPickupKeys(models) {
   return available;
 }
 
-function handleStockAlerts(models) {
+function maybeNotifyPickup(models) {
   const available = collectFilteredPickupKeys(models);
   const availableKeys = new Set(available.map((item) => item.key));
-  updateBuyBar(available[0] || null);
 
-  if (state.seedNotificationBaseline) {
-    const shouldJumpNow = state.watching && available.length > 0;
+  if (state.seedNotificationBaseline || !state.watching) {
     state.previousPickupAvailable = availableKeys;
     state.seedNotificationBaseline = false;
-    if (shouldJumpNow) {
-      playAlert();
-      notifyPickupItem(available[0]);
-      if (autoOpenEnabled() && !state.didAutoOpen) {
-        const opened = openOrderUrl(available[0].orderUrl);
-        if (!opened && els.errorBox) {
-          els.errorBox.classList.remove("hidden");
-          els.errorBox.textContent = t("buyBlocked");
-        }
-      }
-    }
     return;
   }
 
-  if (!state.watching) {
-    state.previousPickupAvailable = availableKeys;
-    return;
-  }
-
-  const newlyAvailable = available.filter((item) => !state.previousPickupAvailable.has(item.key));
-  if (newlyAvailable.length) {
-    playAlert();
-    newlyAvailable.forEach((item) => notifyPickupItem(item));
-    if (autoOpenEnabled() && !state.didAutoOpen) {
-      const opened = openOrderUrl(newlyAvailable[0].orderUrl);
-      if (!opened && els.errorBox) {
-        els.errorBox.classList.remove("hidden");
-        els.errorBox.textContent = t("buyBlocked");
-      }
-    }
-  }
+  available.forEach((item) => {
+    if (state.previousPickupAvailable.has(item.key)) return;
+    notifyPickupItem(item);
+  });
 
   state.previousPickupAvailable = availableKeys;
 }
@@ -786,7 +623,7 @@ function applyCheckData(data) {
   }
 
   renderModels(merged.models || []);
-  handleStockAlerts(merged.models || []);
+  maybeNotifyPickup(merged.models || []);
 }
 
 async function runCheck({ pickupOnly = false } = {}) {
@@ -817,7 +654,7 @@ async function runCheck({ pickupOnly = false } = {}) {
 }
 
 function watchStatusKey() {
-  return autoOpenEnabled() ? "watchingArmed" : "watching";
+  return "watching";
 }
 
 function watchIntervalMs() {
@@ -840,7 +677,6 @@ function stopWatching() {
     clearInterval(state.watchTimer);
     state.watchTimer = null;
   }
-  releaseBuyTabIfUnused();
   els.watchBtn.classList.remove("is-active");
   updateActionButtons();
   setStatusMode("idle", "ready");
@@ -849,7 +685,6 @@ function stopWatching() {
 function startWatching() {
   state.watching = true;
   state.seedNotificationBaseline = true;
-  state.didAutoOpen = false;
   els.watchBtn.classList.add("is-active");
   updateActionButtons();
   setStatusMode("watching", watchStatusKey());
@@ -892,8 +727,6 @@ els.watchBtn.addEventListener("click", () => {
     stopWatching();
     return;
   }
-  unlockAudio();
-  if (autoOpenEnabled()) armBuyTab();
   startWatching();
   if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission()
@@ -910,6 +743,12 @@ els.notifyBtn.addEventListener("click", async () => {
   const permission = await Notification.requestPermission();
   els.notifyBtn.textContent = permission === "granted" ? t("notifyOn") : t("notifyOff");
 });
+
+if (els.preselectBtn) {
+  els.preselectBtn.addEventListener("click", () => {
+    copyAppleDefaultsBookmarklet().catch(() => {});
+  });
+}
 
 if (els.langZh) els.langZh.addEventListener("click", () => setLang("zh"));
 if (els.langEn) els.langEn.addEventListener("click", () => setLang("en"));

@@ -35,17 +35,17 @@ def order_url_for(
     label: str | None = None,
     catalog: dict[str, Any] | None = None,
 ) -> str:
-    """Build Apple HK buy URL with No trade-in + No AppleCare preselected."""
-    # igt=1 + tradeInType select "No trade-in". appleCareType / acpart select
-    # "No AppleCare+ coverage". Keep both names Apple's buy-flow JS checks.
+    """Build Apple HK buy URL with the SKU, pay-in-full, and igt=1 already applied.
+
+    Apple's configurator stores trade-in / AppleCare in sessionStorage on apple.com.
+    Query values "none" and unused flags like appleCareType are ignored, so the
+    unique slug + igt=1 + purchaseOption=fullPrice is what the buy-flow actually
+    reads. No trade-in / No AppleCare are applied by apple-defaults.js after open.
+    """
     params = [
         ("product", part_number),
         ("purchaseOption", "fullPrice"),
-        ("tradeInSelection", "noTradeIn"),
-        ("tradeInType", "noTradeIn"),
         ("igt", "1"),
-        ("appleCareType", "noapplecare"),
-        ("acpart", "none"),
     ]
     query = urllib.parse.urlencode(params)
 
