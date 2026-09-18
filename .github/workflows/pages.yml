@@ -1,0 +1,82 @@
+name: Refresh stock site
+
+on:
+  push:
+    branches:
+      - main
+      - cursor/iphone-18-stock-bot-1629
+    paths:
+      - "iphone-stock-bot/**"
+      - "docs/**"
+      - ".github/workflows/pages.yml"
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: stock-site
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r iphone-stock-bot/requirements.txt
+
+      - name: Export live stock snapshot
+        run: python3 iphone-stock-bot/export_stock.py
+
+      - name: Commit stock snapshot and rebuilt site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/stock.json docs/index.html
+          if git diff --staged --quiet; then
+            echo "No snapshot changes"
+          else
+            git commit -m "chore: refresh HK iPhone stock snapshot [skip ci]"
+            git push
+          fi
+
+  pages:
+    needs: refresh
+    if: github.event_name != 'schedule' || true
+    continue-on-error: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

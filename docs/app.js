@@ -1,0 +1,1446 @@
+const BATCH_SIZE = 16;
+const LOCATION = "Central";
+const BUY_BASE = "https://www.apple.com/hk/shop/buy-iphone/iphone-18-pro";
+const APPLE_BASE = "https://www.apple.com/hk/shop";
+const MARKET_PRICE_URL = "https://www.iphonepricehk.com/iphone-18-pro-max-duo-price";
+const REPO_RAW =
+  "https://raw.githubusercontent.com/liuchiwai0101/Others/cursor/iphone-18-stock-bot-1629/docs";
+const SCREEN_SIZE = {
+  duo: "7.6-inch-display",
+  "18-pro": "6.3-inch-display",
+  "18-pro-max": "6.9-inch-display",
+};
+
+const LANG_KEY = "iphone-stock-lang";
+const I18N = {
+  zh: {
+    title: "iPhone 香港庫存",
+    subtitle: "Duo、18 Pro 及 18 Pro Max · Apple Store 香港 · 取貨及送貨",
+    filters: "篩選",
+    models: "型號",
+    storage: "容量",
+    colour: "顏色",
+    refresh: "更新",
+    check: "查詢",
+    watch: "監察",
+    stop: "停止",
+    notify: "通知",
+    notifyOn: "已開",
+    notifyOff: "已關",
+    lastChecked: "上次查詢",
+    availability: "供應情況",
+    loadingAvailability: "正在載入 iPhone Duo、18 Pro 及 18 Pro Max 供應情況…",
+    noMatch: "沒有款式符合目前篩選。",
+    variant: "款式",
+    pickup: "取貨",
+    canPickUp: "可取時間",
+    stores: "零售店",
+    delivery: "送貨",
+    shipDate: "送貨日期",
+    inStock: "有貨",
+    noPickup: "暫無取貨",
+    yes: "有",
+    no: "沒有",
+    na: "不適用",
+    unknown: "未知",
+    order: "訂購",
+    orderTitle: "前往 Apple 香港訂購（容量、顏色已選；自動剔不換購／無 AppleCare+）",
+    marketPrice: "先達價",
+    marketPriceTitle: "iPhonePriceHK 先達回收價{when}",
+    marketPriceWhen: " · {time}",
+    preselect: "預選",
+    preselectCopied: "已複製。加到 Safari 書籤，若訂購頁沒有自動剔選再點一次。",
+    preselectHint: "備用書籤（訂購頁沒自動剔選時用）",
+    meta: "{variants} 款 · {pickup} 取貨 · {delivery} 送貨",
+    storesMeta: "{count} 間零售店 · {source}",
+    live: "即時",
+    snapshot: "快照",
+    ready: "就緒",
+    readyTap: "就緒 — 請按查詢",
+    loading: "載入中…",
+    loadingSnapshot: "正在載入快照…",
+    checking: "正在查詢 Apple 香港…",
+    watching: "監察中",
+    watchingLive: "監察中（即時）",
+    refreshingSnapshot: "正在更新快照…",
+    checkFailed: "查詢失敗",
+    rateLimited: "即時查詢受到限制，已保留上次已知庫存。",
+    liveBlocked: "即時查詢未能完成（{error}）。改為顯示最新 GitHub 快照。",
+    liveBlockedPreview: "此預覽頁無法即時更新。下拉重新載入以取得較新快照。（{error}）",
+    snapshotFailed: "快照更新失敗（{error}）。",
+    snapshotMissing: "未能載入庫存快照",
+    notifyUnsupported: "此瀏覽器不支援通知。",
+    notifyTitle: "{model} 香港有貨",
+    notifyBody: "{label}，{store}{when}",
+    notifyWhen: " — 可取 {when}",
+    sourceLive: "live",
+    sourceSnapshot: "snapshot",
+  },
+  en: {
+    title: "iPhone HK Stock",
+    subtitle: "Duo, 18 Pro & 18 Pro Max · Apple Store Hong Kong · pickup & delivery",
+    filters: "Filters",
+    models: "Models",
+    storage: "Storage",
+    colour: "Colour",
+    refresh: "Refresh",
+    check: "Check",
+    watch: "Watch",
+    stop: "Stop",
+    notify: "Notify",
+    notifyOn: "On",
+    notifyOff: "Off",
+    lastChecked: "Last checked",
+    availability: "Availability",
+    loadingAvailability: "Loading iPhone Duo, 18 Pro and 18 Pro Max availability…",
+    noMatch: "No variants match the current filters.",
+    variant: "Variant",
+    pickup: "Pickup",
+    canPickUp: "Can pick up",
+    stores: "Stores",
+    delivery: "Delivery",
+    shipDate: "Ship date",
+    inStock: "In stock",
+    noPickup: "No pickup",
+    yes: "Yes",
+    no: "No",
+    na: "N/A",
+    unknown: "unknown",
+    order: "Order",
+    orderTitle: "Order on Apple HK (storage and colour selected; auto-tick No trade-in / No AppleCare+)",
+    marketPrice: "Street",
+    marketPriceTitle: "iPhonePriceHK street price{when}",
+    marketPriceWhen: " · {time}",
+    preselect: "Preselect",
+    preselectCopied: "Copied. Add it in Safari and tap once if Order did not auto-tick.",
+    preselectHint: "Backup bookmark if Order did not auto-tick",
+    meta: "{variants} variants · {pickup} pickup · {delivery} delivery",
+    storesMeta: "{count} stores · {source}",
+    live: "live",
+    snapshot: "snapshot",
+    ready: "Ready",
+    readyTap: "Ready — tap Check",
+    loading: "Loading…",
+    loadingSnapshot: "Loading snapshot…",
+    checking: "Checking Apple HK…",
+    watching: "Watching",
+    watchingLive: "Watching (live)",
+    refreshingSnapshot: "Refreshing snapshot…",
+    checkFailed: "Check failed",
+    rateLimited: "Live Apple check was rate-limited. Kept last known stock for failed requests.",
+    liveBlocked: "Live Apple check blocked here ({error}). Showing latest GitHub snapshot.",
+    liveBlockedPreview: "Live refresh is blocked on this preview page. Pull to reload for a newer snapshot. ({error})",
+    snapshotFailed: "Snapshot refresh failed ({error}).",
+    snapshotMissing: "Could not load stock snapshot",
+    notifyUnsupported: "Notifications are not supported in this browser.",
+    notifyTitle: "{model} in stock (HK)",
+    notifyBody: "{label} at {store}{when}",
+    notifyWhen: " — pick up {when}",
+    sourceLive: "live",
+    sourceSnapshot: "snapshot",
+  },
+};
+const COLOR_ZH = {
+  Black: "黑色",
+  Silver: "銀色",
+  Burgundy: "勃艮第色",
+  Glacier: "冰川色",
+  "Star White": "星光白色",
+  "Night Sky": "夜空色",
+};
+const STORE_ZH = {
+  "ifc mall": "ifc 中環",
+  "Canton Road": "廣東道",
+  "Causeway Bay": "銅鑼灣",
+  "Festival Walk": "又一城",
+  "apm Hong Kong": "apm 觀塘",
+  "New Town Plaza": "新城市廣場",
+};
+
+const state = {
+  lang: "zh",
+  statusKey: "loading",
+  sourceLabel: "snapshot",
+  catalog: null,
+  snapshot: null,
+  watching: false,
+  watchTimer: null,
+  watchTickBusy: false,
+  nextLiveAt: 0,
+  previousPickupAvailable: new Set(),
+  seedNotificationBaseline: true,
+  selectedModels: new Set(),
+  selectedStorage: new Set(),
+  selectedColors: new Set(),
+  marketPrices: {},
+  marketUpdatedAt: "",
+  marketPricesLive: false,
+};
+
+const els = {
+  modelChips: document.getElementById("modelChips"),
+  storageChips: document.getElementById("storageChips"),
+  colorChips: document.getElementById("colorChips"),
+  intervalRange: document.getElementById("intervalRange"),
+  intervalLabel: document.getElementById("intervalLabel"),
+  checkBtn: document.getElementById("checkBtn"),
+  watchBtn: document.getElementById("watchBtn"),
+  notifyBtn: document.getElementById("notifyBtn"),
+  statusDot: document.getElementById("statusDot"),
+  statusText: document.getElementById("statusText"),
+  lastChecked: document.getElementById("lastChecked"),
+  errorBox: document.getElementById("errorBox"),
+  modelsList: document.getElementById("modelsList"),
+  modelsMeta: document.getElementById("modelsMeta"),
+  langZh: document.getElementById("langZh"),
+  langEn: document.getElementById("langEn"),
+  preselectBtn: document.getElementById("preselectBtn"),
+};
+
+function readSavedLang() {
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (saved === "en" || saved === "zh") return saved;
+  } catch (_error) {
+    /* ignore */
+  }
+  return "zh";
+}
+
+function t(key, vars = {}) {
+  const table = I18N[state.lang] || I18N.zh;
+  let text = table[key] || I18N.en[key] || key;
+  Object.entries(vars).forEach(([name, value]) => {
+    text = text.replaceAll(`{${name}}`, String(value));
+  });
+  return text;
+}
+
+function localeTag() {
+  return state.lang === "zh" ? "zh-HK" : "en-HK";
+}
+
+function colorLabel(color) {
+  if (state.lang === "zh" && COLOR_ZH[color]) return COLOR_ZH[color];
+  return color;
+}
+
+function variantDisplayLabel(label) {
+  const storage = label.split(" ", 1)[0];
+  const color = parseVariantColor(label);
+  return color ? `${storage} ${colorLabel(color)}` : label;
+}
+
+function storeDisplayName(name) {
+  if (state.lang !== "zh" || !name) return name;
+  const match = Object.entries(STORE_ZH).find(([english]) => name.startsWith(english) || name.includes(english));
+  return match ? match[1] : name;
+}
+
+const WEEKDAY_ZH = { Mon: "一", Tue: "二", Wed: "三", Thu: "四", Fri: "五", Sat: "六", Sun: "日" };
+const MONTH_NUM = {
+  Jan: 1,
+  Feb: 2,
+  Mar: 3,
+  Apr: 4,
+  May: 5,
+  Jun: 6,
+  Jul: 7,
+  Aug: 8,
+  Sep: 9,
+  Sept: 9,
+  Oct: 10,
+  Nov: 11,
+  Dec: 12,
+};
+
+function localizeEnglishDate(text) {
+  return String(text).replace(
+    /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\b/gi,
+    (matched, weekday, day, month) => {
+      const weekKey = weekday[0].toUpperCase() + weekday.slice(1, 3).toLowerCase();
+      const monthKey = /^sept/i.test(month)
+        ? "Sept"
+        : month[0].toUpperCase() + month.slice(1, 3).toLowerCase();
+      const weekZh = WEEKDAY_ZH[weekKey];
+      const monthNum = MONTH_NUM[monthKey];
+      if (!weekZh || !monthNum) return matched;
+      return `${monthNum}月${Number(day)}日（${weekZh}）`;
+    }
+  );
+}
+
+function localizeAppleText(text) {
+  if (text == null || text === "") return text;
+  if (state.lang !== "zh") {
+    return text === "unknown" ? t("unknown") : text;
+  }
+  const replacements = [
+    ["Currently Unavailable", "暫時未能提供"],
+    ["Currently unavailable", "暫時未能提供"],
+    ["currently unavailable", "暫時未能提供"],
+    ["Unavailable", "未能提供"],
+    ["Today", "今日"],
+    ["Closed", "休息"],
+    ["unknown", "未知"],
+  ];
+  let out = String(text);
+  replacements.forEach(([en, zh]) => {
+    out = out.replaceAll(en, zh);
+  });
+  return localizeEnglishDate(out);
+}
+
+function applyStaticCopy() {
+  document.documentElement.lang = localeTag();
+  document.title = t("title");
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.getAttribute("data-i18n"));
+  });
+  if (els.langZh) els.langZh.classList.toggle("is-active", state.lang === "zh");
+  if (els.langEn) els.langEn.classList.toggle("is-active", state.lang === "en");
+  updateActionButtons();
+}
+
+function updateActionButtons() {
+  els.watchBtn.textContent = state.watching ? t("stop") : t("watch");
+  if (!("Notification" in window)) {
+    els.notifyBtn.textContent = t("notify");
+    return;
+  }
+  els.notifyBtn.textContent = Notification.permission === "granted" ? t("notifyOn") : t("notify");
+}
+
+function setLang(lang) {
+  state.lang = lang === "en" ? "en" : "zh";
+  try {
+    localStorage.setItem(LANG_KEY, state.lang);
+  } catch (_error) {
+    /* ignore */
+  }
+  applyStaticCopy();
+  if (state.catalog) renderCatalogFilters();
+  if (state.snapshot) applySnapshot(state.snapshot, state.sourceLabel);
+  setStatusMode(state.statusMode || "idle", state.statusKey || "ready");
+}
+
+function setStatusMode(mode, key) {
+  state.statusMode = mode;
+  state.statusKey = key;
+  els.statusDot.className = `status-dot status-dot--${mode}`;
+  els.statusText.textContent = t(key);
+}
+
+function formatStorageLabel(value) {
+  if (value >= 1024) return `${value / 1024}TB`;
+  return `${value}GB`;
+}
+
+function parseVariantStorageGb(label) {
+  const storage = label.split(" ", 1)[0].toUpperCase();
+  if (storage.endsWith("TB")) return Math.round(parseFloat(storage) * 1024);
+  if (storage.endsWith("GB")) return parseInt(storage, 10);
+  return Number(storage);
+}
+
+function parseVariantColor(label) {
+  return label.split(" ").slice(1).join(" ");
+}
+
+const MARKET_SIZE_TO_MODEL = { 細: "18-pro", 大: "18-pro-max", 摺: "duo" };
+const MARKET_CELL_TO_MODEL = {
+  "iphone-18-pro-max": "18-pro-max",
+  "iphone-18-pro": "18-pro",
+  "iphone-duo": "duo",
+};
+const MARKET_COLOR_STD = { 黑: "Black", 銀: "Silver", 藍: "Glacier", 紅: "Burgundy", 白: "Star White" };
+const MARKET_COLOR_DUO = { 黑: "Night Sky", 白: "Star White" };
+
+function marketPriceKey(modelId, label) {
+  const storage = label.split(" ", 1)[0];
+  return `${modelId}|${storage}|${parseVariantColor(label)}`;
+}
+
+function marketStorageLabel(token) {
+  const value = String(token).toUpperCase().replace(/\s+/g, "");
+  if (value === "256" || value === "256GB") return "256GB";
+  if (value === "512" || value === "512GB") return "512GB";
+  if (value === "1TB" || value === "1024GB") return "1TB";
+  if (value === "2TB" || value === "2048GB") return "2TB";
+  return value;
+}
+
+function marketColorName(modelId, colorCode) {
+  if (modelId === "duo") return MARKET_COLOR_DUO[colorCode] || "";
+  return MARKET_COLOR_STD[colorCode] || "";
+}
+
+function parseMarketDelta(raw) {
+  if (!raw) return null;
+  const normalized = String(raw).replace(/−/g, "-").replace(/[$,+]/g, "").replace(/,/g, "").trim();
+  if (!/^-?\d+$/.test(normalized)) return null;
+  return Number(normalized);
+}
+
+function adoptMarketPrices(payload, { live = false } = {}) {
+  const prices = payload?.prices || payload;
+  if (!prices || typeof prices !== "object" || !Object.keys(prices).length) return false;
+  state.marketPrices = prices;
+  state.marketUpdatedAt = payload?.updated_at || payload?.updatedAt || state.marketUpdatedAt || "";
+  state.marketPricesLive = live || state.marketPricesLive;
+  return true;
+}
+
+function parseMarketPrices(text) {
+  const prices = {};
+  const html = String(text || "");
+  const cellRe =
+    /data-price-cell-id="(iphone-(?:18-pro-max|18-pro|duo))-([細大摺][黑銀藍紅白])-(256GB|512GB|1TB|2TB)"/g;
+  let match;
+  while ((match = cellRe.exec(html))) {
+    const modelId = MARKET_CELL_TO_MODEL[match[1]];
+    const chunk = html.slice(match.index, match.index + 900).replace(/<!--[\s\S]*?-->/g, "");
+    const priceMatch = chunk.match(/price-cell-price[^>]*>\$([0-9,]+)/) || chunk.match(/\$([0-9,]{4,6})/);
+    if (!modelId || !priceMatch) continue;
+    const after = chunk.slice(chunk.indexOf(priceMatch[0]) + priceMatch[0].length, chunk.indexOf(priceMatch[0]) + priceMatch[0].length + 220);
+    const deltaMatch = after.match(/\(([+\-−$0-9,]+)\)/);
+    const color = marketColorName(modelId, match[2].slice(1));
+    if (!color) continue;
+    prices[`${modelId}|${match[3]}|${color}`] = {
+      price: Number(priceMatch[1].replace(/,/g, "")),
+      delta: parseMarketDelta(deltaMatch && deltaMatch[1]),
+    };
+  }
+  const lineRe = /(細|大|摺)\s*(黑|銀|藍|紅|白)\s*(256|512|1TB|2TB)\s*\$([0-9,]+)\s*(?:\(([+\-−+$0-9]+)\))?/g;
+  while ((match = lineRe.exec(html))) {
+    const modelId = MARKET_SIZE_TO_MODEL[match[1]];
+    const color = marketColorName(modelId, match[2]);
+    const key = `${modelId}|${marketStorageLabel(match[3])}|${color}`;
+    if (!modelId || !color || prices[key]) continue;
+    prices[key] = {
+      price: Number(match[4].replace(/,/g, "")),
+      delta: parseMarketDelta(match[5]),
+    };
+  }
+  const updated = html.match(/截至\s*([0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2})/);
+  return { prices, updated_at: updated ? updated[1] : "", source: MARKET_PRICE_URL };
+}
+
+function formatMarketAmount(value) {
+  return Number(value).toLocaleString(state.lang === "zh" ? "zh-HK" : "en-HK");
+}
+
+function marketPriceHtml(modelId, label) {
+  const entry = state.marketPrices[marketPriceKey(modelId, label)];
+  if (!entry || entry.price == null) return "";
+  const when = state.marketUpdatedAt ? t("marketPriceWhen", { time: state.marketUpdatedAt }) : "";
+  const title = t("marketPriceTitle", { when });
+  let delta = "";
+  if (entry.delta != null && entry.delta !== 0) {
+    const cls = entry.delta > 0 ? "market-price__delta--up" : "market-price__delta--down";
+    const sign = entry.delta > 0 ? "+" : "-";
+    delta = `<span class="market-price__delta ${cls}">${sign}$${formatMarketAmount(Math.abs(entry.delta))}</span>`;
+  }
+  return `<a class="market-price" href="${MARKET_PRICE_URL}" target="_blank" rel="noopener noreferrer" title="${title}">$${formatMarketAmount(entry.price)}</a>${delta}`;
+}
+
+function catalogModels(catalog) {
+  const order = catalog.model_order || Object.keys(catalog.models || {});
+  return order
+    .filter((id) => catalog.models[id])
+    .map((id) => ({
+      id,
+      name: catalog.models[id].name,
+      variants: catalog.models[id].variants,
+    }));
+}
+
+function collectStoragesAndColors(catalog) {
+  const storages = new Set();
+  const colors = new Set();
+  catalogModels(catalog).forEach((model) => {
+    Object.values(model.variants).forEach((label) => {
+      storages.add(parseVariantStorageGb(label));
+      colors.add(parseVariantColor(label));
+    });
+  });
+  return {
+    storages: [...storages].sort((a, b) => a - b),
+    colors: [...colors].sort(),
+  };
+}
+
+function matchesCurrentFilters(model, variant) {
+  if (state.selectedModels.size > 0 && !state.selectedModels.has(model.id)) return false;
+  if (state.selectedStorage.size > 0) {
+    if (!state.selectedStorage.has(String(parseVariantStorageGb(variant.label)))) return false;
+  }
+  if (state.selectedColors.size > 0) {
+    if (!state.selectedColors.has(parseVariantColor(variant.label))) return false;
+  }
+  return true;
+}
+
+function onFiltersChanged() {
+  state.previousPickupAvailable = new Set();
+  state.seedNotificationBaseline = true;
+  if (state.snapshot) applySnapshot(state.snapshot, state.sourceLabel);
+}
+
+function renderChips(container, values, selectedSet, labelFn = (v) => v, keyFn = (v) => String(v)) {
+  container.innerHTML = "";
+  values.forEach((value) => {
+    const key = keyFn(value);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "chip";
+    button.textContent = labelFn(value);
+    if (selectedSet.has(key)) button.classList.add("chip--active");
+    button.addEventListener("click", () => {
+      if (selectedSet.has(key)) {
+        selectedSet.delete(key);
+        button.classList.remove("chip--active");
+      } else {
+        selectedSet.add(key);
+        button.classList.add("chip--active");
+      }
+      onFiltersChanged();
+    });
+    container.appendChild(button);
+  });
+}
+
+const APPLE_DEFAULTS_JS = `(function(){function pick(s){var e=document.querySelector(s);if(!e||e.disabled)return !!(e&&e.checked);if(!e.checked)e.click();return true}function done(){var t=document.querySelector('[data-autom="choose-noTradeIn"]');var a=document.querySelector('[data-autom="noapplecare"]');return !!(t&&t.checked&&a&&a.checked)}function tick(){pick('[data-autom="choose-noTradeIn"]');var p=document.querySelector('input[name="purchaseOption"][value="fullPrice"]');if(p&&p.type==="radio"&&!p.checked&&!p.disabled)p.click();pick('[data-autom="noapplecare"]');return done()}if(tick())return;var n=0,id=setInterval(function(){if(tick()||++n>80)clearInterval(id)},250);if(window.MutationObserver&&document.documentElement){var mo=new MutationObserver(function(){tick()});mo.observe(document.documentElement,{childList:true,subtree:true});setTimeout(function(){mo.disconnect()},20000)}})();`;
+
+function appleDefaultsBookmarklet() {
+  return `javascript:${encodeURIComponent(APPLE_DEFAULTS_JS)}`;
+}
+
+function isAppleBuyUrl(href) {
+  try {
+    const url = new URL(href, document.baseURI);
+    if (url.hostname !== "www.apple.com") return false;
+    return /\/shop\/(buy-iphone|product)\//.test(url.pathname);
+  } catch (_error) {
+    return false;
+  }
+}
+
+function openAppleOrder(url) {
+  if (!url) return false;
+  // Must stay synchronous in the click so iOS does not block the popup.
+  const child = window.open(url, "_blank");
+  if (!child) return false;
+  let n = 0;
+  const id = window.setInterval(() => {
+    n += 1;
+    if (!child || child.closed || n > 80) {
+      window.clearInterval(id);
+      return;
+    }
+    try {
+      const href = child.location.href;
+      if (!href || href === "about:blank") return;
+      child.eval(APPLE_DEFAULTS_JS);
+      const doc = child.document;
+      if (
+        doc &&
+        doc.querySelector('[data-autom="choose-noTradeIn"]:checked') &&
+        doc.querySelector('[data-autom="noapplecare"]:checked')
+      ) {
+        window.clearInterval(id);
+      }
+    } catch (_crossOrigin) {
+      // Cross-origin apple.com: do not assign javascript: to location —
+      // that would navigate the buy page away if the browser allowed it.
+      window.clearInterval(id);
+    }
+  }, 250);
+  return true;
+}
+
+function handleAppleOrderClick(event) {
+  if (event.defaultPrevented || event.button !== 0) return;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const link = event.target.closest("a.variant-link, a.store-tag--link, a.apple-order-link");
+  if (!link || !isAppleBuyUrl(link.href)) return;
+  event.preventDefault();
+  if (!openAppleOrder(link.href)) {
+    window.location.href = link.href;
+  }
+}
+
+async function copyAppleDefaultsBookmarklet() {
+  const text = appleDefaultsBookmarklet();
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (_error) {
+    window.prompt(t("preselectCopied"), text);
+    return;
+  }
+  if (!els.preselectBtn) return;
+  els.preselectBtn.textContent = t("preselectCopied");
+  window.setTimeout(() => applyStaticCopy(), 4500);
+}
+
+function orderUrlFor(partNumber, modelId, label) {
+  // Unique slug + product selects the SKU. igt=1 is Apple's own pay-in-full /
+  // no-trade-in carry flag. AppleCare cannot be set from the query string
+  // (acpart=none is discarded); openAppleOrder ticks the radios after open.
+  const params = new URLSearchParams([
+    ["product", partNumber],
+    ["purchaseOption", "fullPrice"],
+    ["igt", "1"],
+  ]);
+  const model = state.catalog?.models?.[modelId] || {};
+  const buyBase = model.buy_url || BUY_BASE;
+  const screen = model.screen || SCREEN_SIZE[modelId];
+  if (screen && label && label.includes(" ")) {
+    const [storage, ...colorParts] = label.split(" ");
+    const colorSlug = colorParts.join(" ").toLowerCase().replace(/\s+/g, "-");
+    const slug = `${screen}-${storage.toLowerCase()}-${colorSlug}`;
+    return `${buyBase}/${slug}?${params}`;
+  }
+  return `https://www.apple.com/hk/shop/product/${encodeURIComponent(partNumber)}?${params}`;
+}
+
+function selectedParts() {
+  const parts = [];
+  catalogModels(state.catalog).forEach((model) => {
+    if (state.selectedModels.size > 0 && !state.selectedModels.has(model.id)) return;
+    Object.entries(model.variants).forEach(([part, label]) => {
+      if (state.selectedStorage.size > 0) {
+        if (!state.selectedStorage.has(String(parseVariantStorageGb(label)))) return;
+      }
+      if (state.selectedColors.size > 0) {
+        if (!state.selectedColors.has(parseVariantColor(label))) return;
+      }
+      parts.push({ part, label, modelId: model.id, modelName: model.name });
+    });
+  });
+  return parts;
+}
+
+function chunked(items, size = BATCH_SIZE) {
+  const out = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+function readEmbeddedJson(id) {
+  const node = document.getElementById(id);
+  if (!node) return null;
+  try {
+    return JSON.parse(node.textContent);
+  } catch (_error) {
+    return null;
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchJson(url, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) return await response.json();
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch (_error) {
+      return { contents: text, data: { content: text } };
+    }
+  } catch (error) {
+    if (error && error.name === "AbortError") throw new Error("request timed out");
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchJsonWithRetry(url, retries = 1, timeoutMs = 12000) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await fetchJson(url, timeoutMs);
+    } catch (error) {
+      lastError = error;
+      if (!/HTTP 429/i.test(String(error?.message || error)) || attempt === retries) break;
+      await sleep(2000 * (attempt + 1));
+    }
+  }
+  throw lastError || new Error("request failed");
+}
+
+async function fetchText(url, headers = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers,
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.text();
+  } catch (error) {
+    if (error && error.name === "AbortError") throw new Error("request timed out");
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchMarketPrices() {
+  const attempts = [
+    {
+      url: `https://r.jina.ai/${MARKET_PRICE_URL}`,
+      headers: { "X-Return-Format": "html", Accept: "text/html,text/plain,*/*" },
+    },
+    {
+      url: `https://r.jina.ai/${MARKET_PRICE_URL}`,
+      headers: { Accept: "text/plain,*/*" },
+    },
+    { url: MARKET_PRICE_URL, headers: { Accept: "text/html,*/*" } },
+  ];
+  let lastError = null;
+  for (const attempt of attempts) {
+    try {
+      const parsed = parseMarketPrices(await fetchText(attempt.url, attempt.headers, 15000));
+      if (Object.keys(parsed.prices).length >= 8) return parsed;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("market prices unavailable");
+}
+
+function parseApplePayload(payload) {
+  if (typeof payload === "string") {
+    const start = payload.indexOf("{");
+    return JSON.parse(start >= 0 ? payload.slice(start) : payload);
+  }
+  const content = payload?.data?.content;
+  if (typeof content === "string" && content.trim()) {
+    const trimmed = content.trim();
+    const start = trimmed.indexOf("{");
+    return JSON.parse(start >= 0 ? trimmed.slice(start) : trimmed);
+  }
+  if (typeof payload?.contents === "string" && payload.contents.trim()) {
+    const trimmed = payload.contents.trim();
+    const start = trimmed.indexOf("{");
+    return JSON.parse(start >= 0 ? trimmed.slice(start) : trimmed);
+  }
+  if (payload?.body) return payload;
+  throw new Error("Unexpected proxy response");
+}
+
+async function fetchAppleJson(appleUrl) {
+  const payload = await fetchJsonWithRetry(`https://r.jina.ai/${appleUrl}`, 1, 12000);
+  return parseApplePayload(payload);
+}
+
+function pickupStatus(raw) {
+  if (raw === "available") return "available";
+  if (raw === "unavailable") return "unavailable";
+  if (raw === "ineligible") return "ineligible";
+  return "unknown";
+}
+
+function availableWhen(availability, regular) {
+  const quote = (availability.pickupSearchQuote || "").trim();
+  const storeQuote = (regular.storePickupQuote || "").trim();
+  if (quote.toLowerCase().startsWith("available ")) return quote.slice("Available ".length).trim();
+  if (quote && !["currently unavailable", "unavailable"].includes(quote.toLowerCase())) return quote;
+  if (storeQuote.includes(" at Apple ")) return storeQuote.split(" at Apple ", 1)[0].trim();
+  if (storeQuote.toLowerCase().startsWith("today")) return "Today";
+  return quote || storeQuote || "";
+}
+
+function formatPickupWhen(text) {
+  if (!text) return "—";
+  return localizeAppleText(String(text).split(" · ")[0]);
+}
+
+function buildPickupUrl(parts) {
+  const params = new URLSearchParams({ pl: "true", location: LOCATION });
+  parts.forEach((part, index) => params.append(`parts.${index}`, part));
+  return `${APPLE_BASE}/retail/pickup-message?${params}`;
+}
+
+function buildDeliveryUrl(parts) {
+  const params = new URLSearchParams({ mt: "regular" });
+  parts.forEach((part, index) => params.append(`parts.${index}`, part));
+  return `${APPLE_BASE}/delivery-message?${params}`;
+}
+
+async function checkPickup(parts) {
+  if (!parts.length) return { results: [], errors: [] };
+  const payload = await fetchAppleJson(buildPickupUrl(parts));
+  const body = payload.body || {};
+  if (body.errorMessage) return { results: [], errors: [{ part_number: "*", reason: body.errorMessage }] };
+  const stores = body.stores || [];
+  if (!stores.length) {
+    return {
+      results: [],
+      errors: [{ part_number: "*", reason: body.notAvailableNearby || "no stores returned" }],
+    };
+  }
+  const results = [];
+  stores.forEach((store) => {
+    const storeUrl = (store.reservationUrl || store.makeReservationUrl || "").replace("http://", "https://");
+    Object.entries(store.partsAvailability || {}).forEach(([partNumber, availability]) => {
+      const regular = (availability.messageTypes || {}).regular || {};
+      results.push({
+        part_number: partNumber,
+        status: pickupStatus(availability.pickupDisplay),
+        quote: availability.pickupSearchQuote || regular.storePickupQuote || "",
+        available_when: availableWhen(availability, regular),
+        store_name: store.storeName || "Unknown Store",
+        store_number: store.storeNumber || "",
+        city: store.city || "",
+        store_url: storeUrl,
+      });
+    });
+  });
+  return { results, errors: [] };
+}
+
+async function checkDelivery(parts) {
+  if (!parts.length) return { results: [], errors: [] };
+  const payload = await fetchAppleJson(buildDeliveryUrl(parts));
+  const deliveryMessage = (((payload.body || {}).content || {}).deliveryMessage) || {};
+
+  function partDataFor(partNumber) {
+    if (deliveryMessage[partNumber]) return deliveryMessage[partNumber];
+    const compact = partNumber.replace(/\//g, "");
+    for (const [key, value] of Object.entries(deliveryMessage)) {
+      if (typeof value !== "object" || !value) continue;
+      if (key === partNumber || key.replace(/\//g, "") === compact) return value;
+    }
+    return null;
+  }
+
+  function dateFrom(regular) {
+    const message = regular.deliveryOptionMessages?.[0]?.displayName || "";
+    const optionDate = regular.deliveryOptions?.[0]?.date;
+    const isBuyable = regular.buyability?.isBuyable ?? regular.isBuyable;
+    if (isBuyable === false && message) return message.split("—")[0].trim();
+    if (optionDate && !String(optionDate).toLowerCase().startsWith("order today")) return optionDate;
+    if (message) return message.split("—")[0].trim();
+    const sticky = String(regular.stickyMessageSTH || "").replace(/<[^>]+>/g, " ");
+    const match = sticky.match(/\d{1,2}\/\d{1,2}\/\d{4}\s*[–-]\s*\d{1,2}\/\d{1,2}\/\d{4}/);
+    if (match) return match[0];
+    const quote = (regular.orderByDeliveryBy || "").trim();
+    if (quote && !quote.toLowerCase().startsWith("order today")) return quote;
+    return "unknown";
+  }
+
+  const results = parts.map((partNumber) => {
+    const partData = partDataFor(partNumber);
+    if (!partData) {
+      return { part_number: partNumber, status: "unknown", delivery_date: "unknown" };
+    }
+    const regular = partData.regular || {};
+    const dateText = dateFrom(regular);
+    const buyability = regular.buyability || {};
+    const isBuyable = buyability.isBuyable ?? regular.isBuyable;
+    const inventory = buyability.inventory;
+    let status = "unknown";
+    if (isBuyable === true && (inventory == null || inventory > 0)) status = "available";
+    else if (isBuyable === false || inventory === 0) status = "unavailable";
+    else status = String(dateText).toLowerCase().includes("unavailable") ? "unavailable" : "available";
+    return { part_number: partNumber, status, delivery_date: dateText };
+  });
+  return { results, errors: [] };
+}
+
+function previousVariant(partNumber) {
+  for (const model of state.snapshot?.models || []) {
+    const variant = model.variants.find((item) => item.part_number === partNumber);
+    if (variant) return variant;
+  }
+  return null;
+}
+
+function groupByModel(selected, pickupResults, deliveryResults) {
+  const pickupByPart = {};
+  pickupResults.forEach((item) => {
+    (pickupByPart[item.part_number] ||= []).push(item);
+  });
+  const deliveryByPart = Object.fromEntries(deliveryResults.map((item) => [item.part_number, item]));
+
+  const grouped = {};
+  catalogModels(state.catalog).forEach((model) => {
+    grouped[model.id] = {
+      id: model.id,
+      name: model.name,
+      summary: { variant_count: 0, pickup_available: 0, delivery_available: 0 },
+      variants: [],
+    };
+  });
+
+  selected.forEach(({ part, label, modelId }) => {
+    const pickupEntries = pickupByPart[part] || [];
+    const availableStores = pickupEntries
+      .filter((entry) => entry.status === "available")
+      .map((entry) => ({
+        store_name: entry.store_name,
+        store_number: entry.store_number,
+        city: entry.city,
+        quote: entry.quote,
+        available_when: entry.available_when,
+        store_url: entry.store_url,
+        order_url: orderUrlFor(part, modelId, label),
+      }));
+    const previous = previousVariant(part);
+    const pickupStatusValue = availableStores.length
+      ? "available"
+      : pickupEntries[0]?.status || previous?.pickup_status || "unknown";
+    const usedPreviousPickup = !pickupEntries.length && previous;
+    const delivery = deliveryByPart[part];
+    const deliveryLooksLive =
+      delivery &&
+      ["available", "unavailable", "ineligible"].includes(delivery.status) &&
+      delivery.delivery_date &&
+      delivery.delivery_date !== "unknown";
+    const deliveryStatus = deliveryLooksLive
+      ? delivery.status
+      : previous?.delivery_status || delivery?.status || "unknown";
+    const deliveryDate = deliveryLooksLive
+      ? delivery.delivery_date
+      : previous?.delivery_date || delivery?.delivery_date || "unknown";
+    const variant = {
+      part_number: part,
+      label,
+      order_url: orderUrlFor(part, modelId, label),
+      pickup_status: pickupStatusValue,
+      pickup_quote: usedPreviousPickup ? previous.pickup_quote || "" : pickupEntries[0]?.quote || "",
+      pickup_when: usedPreviousPickup
+        ? previous.pickup_when || ""
+        : pickupEntries.find((e) => e.status === "available" && e.available_when)?.available_when ||
+          pickupEntries[0]?.available_when ||
+          "",
+      pickup_stores: usedPreviousPickup ? previous.pickup_stores || [] : availableStores,
+      delivery_status: deliveryStatus,
+      delivery_date: deliveryDate,
+    };
+    const modelEntry = grouped[modelId];
+    modelEntry.variants.push(variant);
+    modelEntry.summary.variant_count += 1;
+    if (pickupStatusValue === "available") modelEntry.summary.pickup_available += 1;
+    if (variant.delivery_status === "available") modelEntry.summary.delivery_available += 1;
+  });
+
+  const order = state.catalog.model_order || Object.keys(grouped);
+  return order.filter((id) => grouped[id]?.variants.length).map((id) => grouped[id]);
+}
+
+function filterModels(models) {
+  return models
+    .map((model) => {
+      if (state.selectedModels.size > 0 && !state.selectedModels.has(model.id)) return null;
+      const variants = model.variants.filter((variant) => {
+        if (state.selectedStorage.size > 0) {
+          if (!state.selectedStorage.has(String(parseVariantStorageGb(variant.label)))) return false;
+        }
+        if (state.selectedColors.size > 0) {
+          if (!state.selectedColors.has(parseVariantColor(variant.label))) return false;
+        }
+        return true;
+      });
+      if (!variants.length) return null;
+      return {
+        ...model,
+        variants,
+        summary: {
+          variant_count: variants.length,
+          pickup_available: variants.filter((v) => v.pickup_status === "available").length,
+          delivery_available: variants.filter((v) => v.delivery_status === "available").length,
+        },
+      };
+    })
+    .filter(Boolean);
+}
+
+function badgeClass(status) {
+  if (status === "available") return "badge badge--available";
+  if (status === "unavailable") return "badge badge--unavailable";
+  return "badge badge--unknown";
+}
+
+function badgeLabel(status) {
+  if (status === "available") return t("yes");
+  if (status === "unavailable") return t("no");
+  if (status === "ineligible") return t("na");
+  return "?";
+}
+
+function renderStoreTags(stores, fallbackWhen = "") {
+  if (!stores.length) return '<span class="placeholder">—</span>';
+  return `<div class="store-tags">${stores
+    .map((store) => {
+      const whenText = store.available_when || fallbackWhen;
+      const when = whenText
+        ? `<span class="store-tag__when">${formatPickupWhen(whenText)}</span>`
+        : "";
+      const label = `<span class="store-tag__name"><strong>${storeDisplayName(store.store_name)}</strong>${when}</span>`;
+      if (store.order_url) {
+        return `<a class="store-tag store-tag--link apple-order-link" href="${store.order_url}" target="_blank" rel="noopener noreferrer" title="${t("orderTitle")}">
+          ${label}
+          <span class="store-tag__action">${t("order")}</span>
+        </a>`;
+      }
+      if (store.store_url) {
+        return `<a class="store-tag store-tag--link" href="${store.store_url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      }
+      return `<span class="store-tag">${label}</span>`;
+    })
+    .join("")}</div>`;
+}
+
+function renderModels(models) {
+  if (!models.length) {
+    els.modelsList.innerHTML = `<p class="placeholder">${t("noMatch")}</p>`;
+    return;
+  }
+
+  els.modelsList.innerHTML = models
+    .map((model) => {
+      const inStock = model.summary.pickup_available > 0;
+      const rows = model.variants
+        .map((variant) => {
+          const rowClass = variant.pickup_status === "available" ? "row--available" : "";
+          const displayLabel = variantDisplayLabel(variant.label);
+          const variantLabel = variant.order_url
+            ? `<a class="variant-link apple-order-link" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">${displayLabel}</a>`
+            : displayLabel;
+          const pickupWhen =
+            variant.pickup_status === "available"
+              ? formatPickupWhen(variant.pickup_when || variant.pickup_quote || "—")
+              : "—";
+          return `
+            <tr class="${rowClass}">
+              <td class="col-variant">${variantLabel}${marketPriceHtml(model.id, variant.label)}</td>
+              <td class="col-pickup"><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
+              <td class="col-when">${pickupWhen}</td>
+              <td class="col-stores">${renderStoreTags(variant.pickup_stores || [], variant.pickup_when || variant.pickup_quote || "")}</td>
+              <td class="col-delivery"><span class="${badgeClass(variant.delivery_status)}">${badgeLabel(variant.delivery_status)}</span></td>
+              <td class="col-date">${localizeAppleText(variant.delivery_date)}</td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      return `
+        <article class="model-panel ${inStock ? "model-panel--in-stock" : ""}" id="model-${model.id}">
+          <div class="model-panel__head">
+            <div>
+              <div class="model-panel__title">${model.name}${marketPriceHtml(model.id, model.id === "duo" ? "256GB Night Sky" : "256GB Black")}</div>
+              <div class="model-panel__meta">${t("meta", {
+                variants: model.summary.variant_count,
+                pickup: model.summary.pickup_available,
+                delivery: model.summary.delivery_available,
+              })}</div>
+            </div>
+            ${inStock ? `<span class="badge badge--available">${t("inStock")}</span>` : `<span class="badge badge--unavailable">${t("noPickup")}</span>`}
+          </div>
+          <div class="table-wrap">
+            <table class="availability-table">
+              <thead>
+                <tr>
+                  <th class="col-variant">${t("variant")}</th>
+                  <th class="col-pickup">${t("pickup")}</th>
+                  <th class="col-when">${t("canPickUp")}</th>
+                  <th class="col-stores">${t("stores")}</th>
+                  <th class="col-delivery">${t("delivery")}</th>
+                  <th class="col-date">${t("shipDate")}</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function notifyPickupItem(item) {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const whenText = item.availableWhen ? t("notifyWhen", { when: localizeAppleText(item.availableWhen) }) : "";
+  const note = new Notification(t("notifyTitle", { model: item.modelName }), {
+    body: t("notifyBody", {
+      label: variantDisplayLabel(item.label),
+      store: storeDisplayName(item.storeName),
+      when: whenText,
+    }),
+    tag: item.key,
+  });
+  note.onclick = () => {
+    if (item.orderUrl) openAppleOrder(item.orderUrl);
+    window.focus();
+  };
+}
+
+function collectFilteredPickupKeys(models) {
+  const available = [];
+  models.forEach((model) => {
+    model.variants.forEach((variant) => {
+      if (!matchesCurrentFilters(model, variant)) return;
+      (variant.pickup_stores || []).forEach((store) => {
+        available.push({
+          key: `${model.id}|${variant.part_number}|${store.store_number}`,
+          modelName: model.name,
+          label: variant.label,
+          storeName: store.store_name,
+          availableWhen: store.available_when || variant.pickup_when || "",
+          orderUrl: store.order_url || variant.order_url || "",
+        });
+      });
+    });
+  });
+  return available;
+}
+
+function maybeNotifyPickup(models) {
+  const available = collectFilteredPickupKeys(models);
+  const availableKeys = new Set(available.map((item) => item.key));
+
+  if (state.seedNotificationBaseline || !state.watching) {
+    state.previousPickupAvailable = availableKeys;
+    state.seedNotificationBaseline = false;
+    return;
+  }
+
+  available.forEach((item) => {
+    if (state.previousPickupAvailable.has(item.key)) return;
+    notifyPickupItem(item);
+  });
+
+  state.previousPickupAvailable = availableKeys;
+}
+
+function applySnapshot(data, sourceLabel = "snapshot") {
+  state.snapshot = data;
+  state.sourceLabel = sourceLabel;
+  if (data?.market_prices && !state.marketPricesLive) {
+    adoptMarketPrices(
+      {
+        prices: data.market_prices,
+        updated_at: data.market_updated_at || data.marketUpdatedAt || "",
+      },
+      { live: false }
+    );
+  }
+  const models = filterModels(data.models || []);
+  const sourceText = sourceLabel === "live" ? t("live") : t("snapshot");
+
+  if (els.lastChecked) {
+    els.lastChecked.textContent = data.checked_at
+      ? new Date(data.checked_at).toLocaleString(localeTag(), { dateStyle: "short", timeStyle: "short" })
+      : "—";
+    els.lastChecked.dateTime = data.checked_at || "";
+  }
+  els.modelsMeta.textContent = t("storesMeta", {
+    count: data.summary?.stores_checked ?? 0,
+    source: sourceText,
+  });
+
+  if (data.errors?.length) {
+    els.errorBox.classList.remove("hidden");
+    const reasons = [...new Set(data.errors.map((err) => err.reason))];
+    const rateLimited = reasons.some((reason) => /429/.test(reason));
+    els.errorBox.innerHTML = rateLimited
+      ? `<div>${t("rateLimited")}</div>`
+      : reasons.map((reason) => `<div>${reason}</div>`).join("");
+  } else {
+    els.errorBox.classList.add("hidden");
+    els.errorBox.innerHTML = "";
+  }
+
+  renderModels(models);
+  maybeNotifyPickup(models);
+}
+
+async function loadSnapshotFallback() {
+  const stamp = Date.now();
+  const urls = [
+    `${REPO_RAW}/stock.json?t=${stamp}`,
+    `https://cdn.jsdelivr.net/gh/liuchiwai0101/Others@cursor/iphone-18-stock-bot-1629/docs/stock.json?t=${stamp}`,
+  ];
+  let lastError = null;
+  for (const url of urls) {
+    try {
+      const data = await fetchJson(url);
+      applySnapshot(data, "snapshot");
+      return data;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error(t("snapshotMissing"));
+}
+
+async function runLiveCheck({ pickupOnly = false } = {}) {
+  const selected = selectedParts();
+  const partNumbers = selected.map((item) => item.part);
+  const pickupResults = [];
+  const deliveryResults = [];
+  const errors = [];
+
+  if (!partNumbers.length) {
+    errors.push({ part_number: "*", reason: "no variants selected" });
+  } else {
+    const pickupBatches = chunked(partNumbers);
+    const deliveryBatches = pickupOnly ? [] : chunked(partNumbers);
+    for (let index = 0; index < pickupBatches.length; index += 1) {
+      try {
+        const { results, errors: batchErrors } = await checkPickup(pickupBatches[index]);
+        pickupResults.push(...results);
+        errors.push(...batchErrors);
+      } catch (error) {
+        errors.push({ part_number: "*", reason: `pickup: ${error.message}` });
+      }
+      if (index < pickupBatches.length - 1) await sleep(400);
+    }
+    if (deliveryBatches.length) await sleep(400);
+    for (let index = 0; index < deliveryBatches.length; index += 1) {
+      try {
+        const { results, errors: batchErrors } = await checkDelivery(deliveryBatches[index]);
+        deliveryResults.push(...results);
+        errors.push(...batchErrors);
+      } catch (error) {
+        errors.push({ part_number: "*", reason: `delivery: ${error.message}` });
+      }
+      if (index < deliveryBatches.length - 1) await sleep(400);
+    }
+  }
+
+  const models = groupByModel(selected, pickupResults, deliveryResults);
+  if (!pickupResults.length && !deliveryResults.length && errors.length) {
+    throw new Error(errors[0].reason);
+  }
+  const pickupSlots = models.reduce((sum, model) => sum + model.summary.pickup_available, 0);
+  return {
+    checked_at: new Date().toISOString(),
+    models,
+    errors,
+    summary: {
+      variant_count: partNumbers.length,
+      pickup_available: pickupSlots,
+      stores_checked: new Set(
+        models.flatMap((model) =>
+          model.variants.flatMap((variant) => (variant.pickup_stores || []).map((store) => store.store_number))
+        ).filter(Boolean)
+      ).size,
+      models_with_pickup: models.filter((model) => model.summary.pickup_available > 0).length,
+    },
+  };
+}
+
+async function runCheck() {
+  setStatusMode("loading", "checking");
+  els.checkBtn.disabled = true;
+  const priceTask = fetchMarketPrices()
+    .then((payload) => {
+      adoptMarketPrices(payload, { live: true });
+      return payload;
+    })
+    .catch(() => null);
+  try {
+    try {
+      const live = await runLiveCheck();
+      await priceTask;
+      applySnapshot(live, "live");
+      setStatusMode(state.watching ? "watching" : "idle", state.watching ? watchStatusKey() : "ready");
+      return;
+    } catch (liveError) {
+      await priceTask;
+      try {
+        await loadSnapshotFallback();
+        els.errorBox.classList.remove("hidden");
+        els.errorBox.textContent = /429/.test(String(liveError.message))
+          ? t("rateLimited")
+          : t("liveBlocked", { error: liveError.message });
+        setStatusMode(state.watching ? "watching" : "idle", state.watching ? watchStatusKey() : "ready");
+        return;
+      } catch (_snapshotError) {
+        const embedded = readEmbeddedJson("embedded-stock");
+        if (embedded) {
+          applySnapshot(embedded, "snapshot");
+          els.errorBox.classList.remove("hidden");
+          els.errorBox.textContent = t("liveBlockedPreview", { error: liveError.message });
+          setStatusMode("idle", "ready");
+          return;
+        }
+        throw liveError;
+      }
+    }
+  } catch (error) {
+    await priceTask;
+    setStatusMode("error", "checkFailed");
+    els.errorBox.classList.remove("hidden");
+    els.errorBox.textContent = error.message;
+  } finally {
+    els.checkBtn.disabled = false;
+  }
+}
+
+function stopWatching() {
+  state.watching = false;
+  if (state.watchTimer) {
+    clearInterval(state.watchTimer);
+    state.watchTimer = null;
+  }
+  els.watchBtn.classList.remove("is-active");
+  updateActionButtons();
+  setStatusMode("idle", "ready");
+}
+
+function watchStatusKey() {
+  return state.sourceLabel === "live" ? "watchingLive" : "watching";
+}
+
+async function runWatchTick() {
+  if (!state.watching || state.watchTickBusy) return;
+  state.watchTickBusy = true;
+  try {
+    const now = Date.now();
+    if (now >= state.nextLiveAt) {
+      try {
+        setStatusMode("loading", "checking");
+        const live = await runLiveCheck({ pickupOnly: true });
+        applySnapshot(live, "live");
+        setStatusMode("watching", watchStatusKey());
+        return;
+      } catch (liveError) {
+        if (/429/.test(String(liveError.message))) {
+          state.nextLiveAt = Date.now() + 45000;
+        }
+      }
+    }
+    setStatusMode("loading", "refreshingSnapshot");
+    await loadSnapshotFallback();
+    setStatusMode("watching", watchStatusKey());
+  } catch (error) {
+    setStatusMode("watching", watchStatusKey());
+    els.errorBox.classList.remove("hidden");
+    els.errorBox.textContent = t("snapshotFailed", { error: error.message });
+  } finally {
+    state.watchTickBusy = false;
+  }
+}
+
+function watchIntervalMs() {
+  return Math.max(Number(els.intervalRange.value) || 15, 10) * 1000;
+}
+
+function startWatching() {
+  state.watching = true;
+  state.seedNotificationBaseline = true;
+  state.nextLiveAt = 0;
+  els.watchBtn.classList.add("is-active");
+  updateActionButtons();
+  setStatusMode("watching", watchStatusKey());
+  runCheck();
+  if (state.watchTimer) clearInterval(state.watchTimer);
+  state.watchTimer = setInterval(runWatchTick, watchIntervalMs());
+}
+
+function renderCatalogFilters(selectAllModels = false) {
+  const { storages, colors } = collectStoragesAndColors(state.catalog);
+  if (selectAllModels) {
+    catalogModels(state.catalog).forEach((model) => state.selectedModels.add(model.id));
+  }
+  renderChips(
+    els.modelChips,
+    catalogModels(state.catalog),
+    state.selectedModels,
+    (model) => model.name,
+    (model) => model.id
+  );
+  renderChips(els.storageChips, storages, state.selectedStorage, formatStorageLabel);
+  renderChips(els.colorChips, colors, state.selectedColors, colorLabel);
+}
+
+function loadCatalog() {
+  state.catalog = readEmbeddedJson("embedded-catalog");
+  if (!state.catalog) throw new Error("Embedded catalog missing");
+  renderCatalogFilters(true);
+}
+
+els.intervalRange.addEventListener("input", () => {
+  els.intervalLabel.textContent = `${els.intervalRange.value}s`;
+  if (state.watching) {
+    if (state.watchTimer) clearInterval(state.watchTimer);
+    state.watchTimer = setInterval(runWatchTick, watchIntervalMs());
+  }
+});
+
+els.checkBtn.addEventListener("click", runCheck);
+els.watchBtn.addEventListener("click", () => {
+  if (state.watching) {
+    stopWatching();
+    return;
+  }
+  startWatching();
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission()
+      .then(() => updateActionButtons())
+      .catch(() => {});
+  }
+});
+
+els.notifyBtn.addEventListener("click", async () => {
+  if (!("Notification" in window)) {
+    alert(t("notifyUnsupported"));
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  els.notifyBtn.textContent = permission === "granted" ? t("notifyOn") : t("notifyOff");
+});
+
+if (els.preselectBtn) {
+  els.preselectBtn.addEventListener("click", () => {
+    copyAppleDefaultsBookmarklet().catch(() => {});
+  });
+}
+
+document.addEventListener("click", handleAppleOrderClick);
+
+if (els.langZh) els.langZh.addEventListener("click", () => setLang("zh"));
+if (els.langEn) els.langEn.addEventListener("click", () => setLang("en"));
+
+try {
+  state.lang = readSavedLang();
+  applyStaticCopy();
+  setStatusMode("loading", "loadingSnapshot");
+  loadCatalog();
+  const embedded = readEmbeddedJson("embedded-stock");
+  if (embedded) {
+    applySnapshot(embedded, "snapshot");
+    setStatusMode("idle", "ready");
+  } else {
+    setStatusMode("idle", "readyTap");
+  }
+  fetchMarketPrices()
+    .then((payload) => {
+      if (!adoptMarketPrices(payload, { live: true })) return;
+      if (state.snapshot) applySnapshot(state.snapshot, state.sourceLabel);
+    })
+    .catch(() => {});
+} catch (error) {
+  setStatusMode("error", "checkFailed");
+  els.errorBox.classList.remove("hidden");
+  els.errorBox.textContent = error.message;
+}
