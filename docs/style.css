@@ -365,6 +365,10 @@ body {
 .model-panel__title {
   font-size: 0.92rem;
   font-weight: 700;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 2px;
 }
 
 .model-panel__meta {
@@ -514,6 +518,35 @@ body {
 .variant-link:hover {
   color: #8ec8ff;
   border-bottom-color: var(--accent);
+}
+
+.market-price {
+  margin-left: 6px;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.market-price:hover {
+  color: #8ec8ff;
+  text-decoration: underline;
+}
+
+.market-price__delta {
+  margin-left: 4px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.market-price__delta--up {
+  color: var(--success);
+}
+
+.market-price__delta--down {
+  color: var(--danger);
 }
 
 .placeholder {

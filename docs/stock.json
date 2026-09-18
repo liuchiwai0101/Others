@@ -612,5 +612,169 @@
     "stores_checked": 6,
     "models_with_pickup": 1
   },
-  "source": "github-actions"
+  "source": "github-actions",
+  "market_prices": {
+    "18-pro|256GB|Black": {
+      "price": 10500,
+      "delta": 1
+    },
+    "18-pro|256GB|Silver": {
+      "price": 10500,
+      "delta": 1
+    },
+    "18-pro|256GB|Glacier": {
+      "price": 10500,
+      "delta": 1
+    },
+    "18-pro|256GB|Burgundy": {
+      "price": 10500,
+      "delta": 1
+    },
+    "18-pro|512GB|Black": {
+      "price": 12300,
+      "delta": 1
+    },
+    "18-pro|512GB|Silver": {
+      "price": 12300,
+      "delta": 1
+    },
+    "18-pro|512GB|Glacier": {
+      "price": 12300,
+      "delta": 1
+    },
+    "18-pro|512GB|Burgundy": {
+      "price": 12300,
+      "delta": 1
+    },
+    "18-pro|1TB|Black": {
+      "price": 15800,
+      "delta": 1
+    },
+    "18-pro|1TB|Silver": {
+      "price": 15800,
+      "delta": 1
+    },
+    "18-pro|1TB|Glacier": {
+      "price": 15800,
+      "delta": 1
+    },
+    "18-pro|1TB|Burgundy": {
+      "price": 15800,
+      "delta": 1
+    },
+    "18-pro|2TB|Black": {
+      "price": 21000,
+      "delta": 1
+    },
+    "18-pro|2TB|Silver": {
+      "price": 21000,
+      "delta": 1
+    },
+    "18-pro|2TB|Glacier": {
+      "price": 21000,
+      "delta": 1
+    },
+    "18-pro|2TB|Burgundy": {
+      "price": 21000,
+      "delta": 1
+    },
+    "18-pro-max|256GB|Black": {
+      "price": 14000,
+      "delta": 2501
+    },
+    "18-pro-max|256GB|Silver": {
+      "price": 14000,
+      "delta": 2501
+    },
+    "18-pro-max|256GB|Glacier": {
+      "price": 14000,
+      "delta": 2501
+    },
+    "18-pro-max|256GB|Burgundy": {
+      "price": 14000,
+      "delta": 2501
+    },
+    "18-pro-max|512GB|Black": {
+      "price": 15850,
+      "delta": 2551
+    },
+    "18-pro-max|512GB|Silver": {
+      "price": 15850,
+      "delta": 2551
+    },
+    "18-pro-max|512GB|Glacier": {
+      "price": 15800,
+      "delta": 2501
+    },
+    "18-pro-max|512GB|Burgundy": {
+      "price": 15800,
+      "delta": 2501
+    },
+    "18-pro-max|1TB|Black": {
+      "price": 19600,
+      "delta": 2801
+    },
+    "18-pro-max|1TB|Silver": {
+      "price": 19600,
+      "delta": 2801
+    },
+    "18-pro-max|1TB|Glacier": {
+      "price": 19600,
+      "delta": 2801
+    },
+    "18-pro-max|1TB|Burgundy": {
+      "price": 19650,
+      "delta": 2851
+    },
+    "18-pro-max|2TB|Black": {
+      "price": 24000,
+      "delta": 2001
+    },
+    "18-pro-max|2TB|Silver": {
+      "price": 23950,
+      "delta": 1951
+    },
+    "18-pro-max|2TB|Glacier": {
+      "price": 24150,
+      "delta": 2151
+    },
+    "18-pro-max|2TB|Burgundy": {
+      "price": 24150,
+      "delta": 2151
+    },
+    "duo|256GB|Night Sky": {
+      "price": 17499,
+      "delta": 0
+    },
+    "duo|256GB|Star White": {
+      "price": 17499,
+      "delta": 0
+    },
+    "duo|512GB|Night Sky": {
+      "price": 19299,
+      "delta": 0
+    },
+    "duo|512GB|Star White": {
+      "price": 19299,
+      "delta": 0
+    },
+    "duo|1TB|Night Sky": {
+      "price": 22799,
+      "delta": 0
+    },
+    "duo|1TB|Star White": {
+      "price": 22799,
+      "delta": 0
+    },
+    "duo|2TB|Night Sky": {
+      "price": 27999,
+      "delta": 0
+    },
+    "duo|2TB|Star White": {
+      "price": 27999,
+      "delta": 0
+    }
+  },
+  "market_updated_at": "2026-09-18 09:50",
+  "market_source": "https://www.iphonepricehk.com/iphone-18-pro-max-duo-price"
 }

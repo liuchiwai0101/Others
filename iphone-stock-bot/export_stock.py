@@ -14,6 +14,7 @@ DOCS = REPO / "docs"
 
 sys.path.insert(0, str(ROOT))
 
+from market_prices import fetch_market_prices  # noqa: E402
 from service import StockCheckResult, run_stock_check  # noqa: E402
 
 
@@ -41,6 +42,13 @@ def main() -> int:
         }
     )
     payload = serialize(result)
+    try:
+        market = fetch_market_prices(force=True)
+        payload["market_prices"] = market.get("prices") or {}
+        payload["market_updated_at"] = market.get("updated_at")
+        payload["market_source"] = market.get("source")
+    except Exception as error:
+        print(f"market prices skipped: {error}")
     out = DOCS / "stock.json"
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(

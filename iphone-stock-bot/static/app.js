@@ -1,4 +1,5 @@
 const LANG_KEY = "iphone-stock-lang";
+const MARKET_PRICE_URL = "https://www.iphonepricehk.com/iphone-18-pro-max-duo-price";
 const I18N = {
   zh: {
     title: "iPhone 香港庫存",
@@ -32,6 +33,9 @@ const I18N = {
     unknown: "未知",
     order: "訂購",
     orderTitle: "前往 Apple 香港訂購（容量、顏色已選；自動剔不換購／無 AppleCare+）",
+    marketPrice: "先達價",
+    marketPriceTitle: "iPhonePriceHK 先達回收價{when}",
+    marketPriceWhen: " · {time}",
     preselect: "預選",
     preselectCopied: "已複製。加到 Safari 書籤，若訂購頁沒有自動剔選再點一次。",
     preselectHint: "備用書籤（訂購頁沒自動剔選時用）",
@@ -92,6 +96,9 @@ const I18N = {
     unknown: "unknown",
     order: "Order",
     orderTitle: "Order on Apple HK (storage and colour selected; auto-tick No trade-in / No AppleCare+)",
+    marketPrice: "Street",
+    marketPriceTitle: "iPhonePriceHK street price{when}",
+    marketPriceWhen: " · {time}",
     preselect: "Preselect",
     preselectCopied: "Copied. Add it in Safari and tap once if Order did not auto-tick.",
     preselectHint: "Backup bookmark if Order did not auto-tick",
@@ -153,6 +160,9 @@ const state = {
   selectedModels: new Set(),
   selectedStorage: new Set(),
   selectedColors: new Set(),
+  marketPrices: {},
+  marketUpdatedAt: "",
+  marketPricesLive: false,
 };
 
 const els = {
@@ -328,6 +338,127 @@ function parseVariantStorageGb(label) {
 
 function parseVariantColor(label) {
   return label.split(" ").slice(1).join(" ");
+}
+
+const MARKET_SIZE_TO_MODEL = { 細: "18-pro", 大: "18-pro-max", 摺: "duo" };
+const MARKET_CELL_TO_MODEL = {
+  "iphone-18-pro-max": "18-pro-max",
+  "iphone-18-pro": "18-pro",
+  "iphone-duo": "duo",
+};
+const MARKET_COLOR_STD = { 黑: "Black", 銀: "Silver", 藍: "Glacier", 紅: "Burgundy", 白: "Star White" };
+const MARKET_COLOR_DUO = { 黑: "Night Sky", 白: "Star White" };
+
+function marketPriceKey(modelId, label) {
+  const storage = label.split(" ", 1)[0];
+  return `${modelId}|${storage}|${parseVariantColor(label)}`;
+}
+
+function marketStorageLabel(token) {
+  const value = String(token).toUpperCase().replace(/\s+/g, "");
+  if (value === "256" || value === "256GB") return "256GB";
+  if (value === "512" || value === "512GB") return "512GB";
+  if (value === "1TB" || value === "1024GB") return "1TB";
+  if (value === "2TB" || value === "2048GB") return "2TB";
+  return value;
+}
+
+function marketColorName(modelId, colorCode) {
+  if (modelId === "duo") return MARKET_COLOR_DUO[colorCode] || "";
+  return MARKET_COLOR_STD[colorCode] || "";
+}
+
+function parseMarketDelta(raw) {
+  if (!raw) return null;
+  const normalized = String(raw).replace(/−/g, "-").replace(/[$,+]/g, "").replace(/,/g, "").trim();
+  if (!/^-?\d+$/.test(normalized)) return null;
+  return Number(normalized);
+}
+
+function adoptMarketPrices(payload, { live = false } = {}) {
+  const prices = payload?.prices || payload;
+  if (!prices || typeof prices !== "object" || !Object.keys(prices).length) return false;
+  state.marketPrices = prices;
+  state.marketUpdatedAt = payload?.updated_at || payload?.updatedAt || state.marketUpdatedAt || "";
+  state.marketPricesLive = live || state.marketPricesLive;
+  return true;
+}
+
+function parseMarketPrices(text) {
+  const prices = {};
+  const html = String(text || "");
+  const cellRe =
+    /data-price-cell-id="(iphone-(?:18-pro-max|18-pro|duo))-([細大摺][黑銀藍紅白])-(256GB|512GB|1TB|2TB)"/g;
+  let match;
+  while ((match = cellRe.exec(html))) {
+    const modelId = MARKET_CELL_TO_MODEL[match[1]];
+    const chunk = html.slice(match.index, match.index + 900).replace(/<!--[\s\S]*?-->/g, "");
+    const priceMatch = chunk.match(/price-cell-price[^>]*>\$([0-9,]+)/) || chunk.match(/\$([0-9,]{4,6})/);
+    if (!modelId || !priceMatch) continue;
+    const after = chunk.slice(chunk.indexOf(priceMatch[0]) + priceMatch[0].length, chunk.indexOf(priceMatch[0]) + priceMatch[0].length + 220);
+    const deltaMatch = after.match(/\(([+\-−$0-9,]+)\)/);
+    const color = marketColorName(modelId, match[2].slice(1));
+    if (!color) continue;
+    prices[`${modelId}|${match[3]}|${color}`] = {
+      price: Number(priceMatch[1].replace(/,/g, "")),
+      delta: parseMarketDelta(deltaMatch && deltaMatch[1]),
+    };
+  }
+  const lineRe = /(細|大|摺)\s*(黑|銀|藍|紅|白)\s*(256|512|1TB|2TB)\s*\$([0-9,]+)\s*(?:\(([+\-−+$0-9]+)\))?/g;
+  while ((match = lineRe.exec(html))) {
+    const modelId = MARKET_SIZE_TO_MODEL[match[1]];
+    const color = marketColorName(modelId, match[2]);
+    const key = `${modelId}|${marketStorageLabel(match[3])}|${color}`;
+    if (!modelId || !color || prices[key]) continue;
+    prices[key] = {
+      price: Number(match[4].replace(/,/g, "")),
+      delta: parseMarketDelta(match[5]),
+    };
+  }
+  const updated = html.match(/截至\s*([0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2})/);
+  return { prices, updated_at: updated ? updated[1] : "", source: MARKET_PRICE_URL };
+}
+
+function formatMarketAmount(value) {
+  return Number(value).toLocaleString(state.lang === "zh" ? "zh-HK" : "en-HK");
+}
+
+function marketPriceHtml(modelId, label) {
+  const entry = state.marketPrices[marketPriceKey(modelId, label)];
+  if (!entry || entry.price == null) return "";
+  const when = state.marketUpdatedAt ? t("marketPriceWhen", { time: state.marketUpdatedAt }) : "";
+  const title = t("marketPriceTitle", { when });
+  let delta = "";
+  if (entry.delta != null && entry.delta !== 0) {
+    const cls = entry.delta > 0 ? "market-price__delta--up" : "market-price__delta--down";
+    const sign = entry.delta > 0 ? "+" : "-";
+    delta = `<span class="market-price__delta ${cls}">${sign}$${formatMarketAmount(Math.abs(entry.delta))}</span>`;
+  }
+  return `<a class="market-price" href="${MARKET_PRICE_URL}" target="_blank" rel="noopener noreferrer" title="${title}">$${formatMarketAmount(entry.price)}</a>${delta}`;
+}
+
+async function fetchMarketPrices() {
+  try {
+    const response = await fetch("/api/prices", { cache: "no-store" });
+    if (response.ok) {
+      const payload = await response.json();
+      if (payload?.prices && Object.keys(payload.prices).length >= 8) return payload;
+    }
+  } catch (_error) {
+    /* fall through to the public page */
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(MARKET_PRICE_URL, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return parseMarketPrices(await response.text());
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function matchesCurrentFilters(model, variant) {
@@ -531,7 +662,7 @@ function renderModels(models) {
             : displayLabel;
           return `
             <tr class="${rowClass}">
-              <td class="col-variant">${variantLabel}</td>
+              <td class="col-variant">${variantLabel}${marketPriceHtml(model.id, variant.label)}</td>
               <td class="col-pickup"><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
               <td class="col-when">${variant.pickup_status === "available" ? formatPickupWhen(variant.pickup_when || variant.pickup_quote || "—") : "—"}</td>
               <td class="col-stores">${renderStoreTags(variant.pickup_stores, variant.pickup_when || variant.pickup_quote || "")}</td>
@@ -546,7 +677,7 @@ function renderModels(models) {
         <article class="model-panel ${inStock ? "model-panel--in-stock" : ""}" id="model-${model.id}">
           <div class="model-panel__head">
             <div>
-              <div class="model-panel__title">${model.name}</div>
+              <div class="model-panel__title">${model.name}${marketPriceHtml(model.id, model.id === "duo" ? "256GB Night Sky" : "256GB Black")}</div>
               <div class="model-panel__meta">${t("meta", {
                 variants: model.summary.variant_count,
                 pickup: model.summary.pickup_available,
@@ -657,6 +788,15 @@ function mergePreviousDelivery(data) {
 function applyCheckData(data) {
   const merged = mergePreviousDelivery(data);
   state.lastData = merged;
+  if (merged.market_prices) {
+    adoptMarketPrices(
+      {
+        prices: merged.market_prices,
+        updated_at: merged.market_updated_at || "",
+      },
+      { live: true }
+    );
+  }
   if (els.lastChecked) {
     els.lastChecked.textContent = merged.checked_at
       ? new Date(merged.checked_at).toLocaleString(localeTag(), { dateStyle: "short", timeStyle: "short" })
@@ -694,6 +834,13 @@ async function runCheck({ pickupOnly = false } = {}) {
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.detail || t("checkFailed"));
+    }
+    if (!data.market_prices || !Object.keys(data.market_prices).length) {
+      const extra = await fetchMarketPrices().catch(() => null);
+      if (extra?.prices) {
+        data.market_prices = extra.prices;
+        data.market_updated_at = extra.updated_at;
+      }
     }
 
     applyCheckData(data);

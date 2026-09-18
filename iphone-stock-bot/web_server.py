@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from market_prices import fetch_market_prices
 from service import catalog_models, load_catalog, run_stock_check
 
 
@@ -48,6 +49,15 @@ class CheckRequest(BaseModel):
 @app.get("/")
 async def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/api/prices")
+async def market_prices() -> dict[str, Any]:
+    try:
+        payload = fetch_market_prices(force=True)
+    except Exception as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
+    return payload
 
 
 @app.get("/api/catalog")
@@ -105,6 +115,10 @@ async def check_stock(request: CheckRequest) -> dict[str, Any]:
         "filters": request.filters.model_dump(),
     }
     result = run_stock_check(config)
+    try:
+        market = fetch_market_prices(force=not request.check_pickup or request.check_online_delivery)
+    except Exception:
+        market = {"prices": {}, "updated_at": None, "source": None}
     return {
         "checked_at": result.checked_at,
         "part_numbers": result.part_numbers,
@@ -113,6 +127,9 @@ async def check_stock(request: CheckRequest) -> dict[str, Any]:
         "delivery": result.delivery,
         "errors": result.errors,
         "summary": result.summary,
+        "market_prices": market.get("prices") or {},
+        "market_updated_at": market.get("updated_at"),
+        "market_source": market.get("source"),
     }
 
 
