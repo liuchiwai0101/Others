@@ -662,7 +662,7 @@ function renderModels(models) {
             : displayLabel;
           return `
             <tr class="${rowClass}">
-              <td class="col-variant">${variantLabel}${marketPriceHtml(model.id, variant.label)}</td>
+              <td class="col-variant"><span class="variant-cell">${variantLabel}${marketPriceHtml(model.id, variant.label)}</span></td>
               <td class="col-pickup"><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
               <td class="col-when">${variant.pickup_status === "available" ? formatPickupWhen(variant.pickup_when || variant.pickup_quote || "—") : "—"}</td>
               <td class="col-stores">${renderStoreTags(variant.pickup_stores, variant.pickup_when || variant.pickup_quote || "")}</td>
