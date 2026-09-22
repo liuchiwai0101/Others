@@ -579,6 +579,7 @@ body {
 }
 
 @media (max-width: 720px) {
+  .col-when,
   .col-delivery,
   .col-date { display: none; }
   .availability-table {
@@ -586,18 +587,13 @@ body {
     min-width: 0;
   }
   .availability-table .col-variant {
-    width: 32%;
+    width: 40%;
     min-width: 0;
     white-space: normal;
   }
-  .availability-table .col-when {
-    font-size: 0.68rem;
-    width: 10%;
-  }
   .availability-table .col-stores {
-    width: 50%;
+    width: 52%;
     min-width: 0;
   }
   .store-tag { padding: 2px 6px; }
-  .store-tag__when { display: none; }
 }
