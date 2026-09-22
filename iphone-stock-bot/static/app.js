@@ -660,9 +660,10 @@ function renderModels(models) {
           const variantLabel = variant.order_url
             ? `<a class="variant-link apple-order-link" href="${variant.order_url}" target="_blank" rel="noopener noreferrer">${displayLabel}</a>`
             : displayLabel;
+          const priceHtml = marketPriceHtml(model.id, variant.label);
           return `
             <tr class="${rowClass}">
-              <td class="col-variant"><span class="variant-cell">${variantLabel}${marketPriceHtml(model.id, variant.label)}</span></td>
+              <td class="col-variant"><span class="variant-cell">${variantLabel}${priceHtml ? `<span class="variant-price">${priceHtml}</span>` : ""}</span></td>
               <td class="col-pickup"><span class="${badgeClass(variant.pickup_status)}">${badgeLabel(variant.pickup_status)}</span></td>
               <td class="col-when">${variant.pickup_status === "available" ? formatPickupWhen(variant.pickup_when || variant.pickup_quote || "—") : "—"}</td>
               <td class="col-stores">${renderStoreTags(variant.pickup_stores, variant.pickup_when || variant.pickup_quote || "")}</td>

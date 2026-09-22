@@ -394,7 +394,7 @@ body {
   padding: 4px 8px;
   text-align: left;
   border-bottom: 1px solid var(--panel-border);
-  vertical-align: middle;
+  vertical-align: top;
   white-space: nowrap;
 }
 
@@ -420,6 +420,12 @@ body {
   align-items: baseline;
   flex-wrap: nowrap;
   gap: 0;
+  white-space: nowrap;
+}
+
+.variant-price {
+  display: inline-flex;
+  align-items: baseline;
   white-space: nowrap;
 }
 
@@ -603,6 +609,14 @@ body {
     min-width: 0;
     white-space: nowrap;
     padding-right: 8px;
+  }
+  .variant-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .variant-price .market-price {
+    margin-left: 0;
   }
   .availability-table .col-stores {
     width: auto;
